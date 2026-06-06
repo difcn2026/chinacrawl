@@ -5,7 +5,7 @@ build-backend = "setuptools.backends._legacy:_Backend"
 [project]
 name = "xhls_scraper"
 version = "0.1.0"
-description = "China-optimized web data engine: scrape, search, crawl, monitor, download, extract. The Firecrawl alternative that works in China."
+description = "XHLS (eXtensible Hyper-Light Scraper) ? China-optimized web data engine: scrape, search, crawl, monitor, download, extract. The Firecrawl alternative that works in China."
 authors = [{ name = "Xiao Hei (XHLS)", email = "xhls@example.com" }]
 license = { file = "LICENSE" }
 readme = "README.md"

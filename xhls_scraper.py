@@ -1,4 +1,5 @@
 ﻿# xhls_scraper - China-optimized web data engine
+# XHLS = eXtensible Hyper-Light Scraper
 # 11-in-1: scrape | search | map | crawl | download | monitor | monitor-ai | extract | extract-llm | interact | session
 # License: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html
 # Copyright (C) 2026 XHLS Contributors
