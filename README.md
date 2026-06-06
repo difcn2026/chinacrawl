@@ -154,4 +154,6 @@ GNU Affero General Public License v3.0 — Free to use, modify, and distribute. 
 
 <p align="center">
   <sub>Built by Xiao Hei · ChinaCrawl · 2026</sub>
+
+<!-- SEO Keywords: chinacrawl ChinaCrawl web-scraping Firecrawl-alternative Chinese-web-scraper Python-scraper Ollama-extraction SearXNG AGPLv3 difcn2026 中国版Firecrawl 网页抓取 爬虫 Python爬虫 开源爬虫 中文搜索 本地LLM提取 -->
 </p>
