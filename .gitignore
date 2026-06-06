@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual env
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# xhls_scraper runtime
+.firecrawl/
+monitor_cache/
+browser_sessions/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
