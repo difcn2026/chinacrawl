@@ -41,6 +41,7 @@ else:
     # Public SearXNG instances (community-maintained)
     # Set SEARXNG_URL env var to use your own instance
     SEARXNG_INSTANCES = [
+        "http://47.236.24.76:9999",  # ChinaCrawl private VPS (SG)
         "https://searx.be",
         "https://search.sapti.me",
     ]
@@ -328,9 +329,9 @@ def search_web(query, max_results=10, timeout=TIMEOUT, proxy=PROXY) -> list[Sear
     for instance in SEARXNG_INSTANCES:
         try:
             with _make_client(proxy, timeout) as client:
-                resp = client.get(
+                resp = client.post(
                     f"{instance}/search",
-                    params={"q": query, "format": "json"},
+                    data={"q": query, "format": "json"},
                     headers={"User-Agent": USER_AGENT}
                 )
                 if resp.status_code != 200:
