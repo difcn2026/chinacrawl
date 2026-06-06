@@ -1,15 +1,14 @@
-﻿# xhls_scraper - China-optimized web data engine
-# XHLS = eXtensible Hyper-Light Scraper
+﻿# ChinaCrawl - China-optimized web data engine (Firecrawl alternative)
 # 11-in-1: scrape | search | map | crawl | download | monitor | monitor-ai | extract | extract-llm | interact | session
 # License: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html
-# Copyright (C) 2026 XHLS Contributors
+# Copyright (C) 2026 ChinaCrawl Contributors
 #
-# LEGAL DISCLAIMER: xhls_scraper is a data extraction tool, NOT an AI service.
+# LEGAL DISCLAIMER: ChinaCrawl is a data extraction tool, NOT an AI service.
 # The extract-llm feature relies on user-installed Ollama models. Users must ensure
 # their chosen model''s license (Apache 2.0, MIT, Llama Community, etc.) allows
 # their intended use. Default model: qwen2.5:7b (Apache 2.0, no restrictions).
 #
-# Created: 2026-06-06 | Author: Xiao Hei (XHLS)
+# Created: 2026-06-06 | Author: Xiao Hei
 import hashlib
 import json
 import os

@@ -4,31 +4,31 @@
   <img src="https://img.shields.io/badge/Status-Alpha-orange.svg" alt="Alpha">
 </p>
 
-# XHLS Scraper
+# ChinaCrawl
 
-> **XHLS (eXtensible Hyper-Light Scraper) — 中国可用的 Firecrawl 平替。零外部付费依赖的 11 合 1 Web 数据引擎。**
-
-*The Firecrawl alternative that works in China. 11-in-1 web data engine with zero external API cost.*
+> **The Firecrawl alternative that works in China. 11-in-1 web data engine — zero external API cost.**
+>
+> 中国版 Firecrawl。11 合 1 Web 数据引擎 — 零外部付费依赖。
 
 ---
 
-## 为什么需要 XHLS Scraper？
+## Why ChinaCrawl?
 
-| | Firecrawl | XHLS Scraper |
+Firecrawl is the best web scraping engine from Silicon Valley. But it's blocked in China and has no Chinese search optimization. ChinaCrawl fills this gap.
+
+| | Firecrawl | ChinaCrawl |
 |---|---|---|
-| 中国可用 | 不可用（被墙 + 无中文搜索） | 阿里云/本地自建 |
-| 中文搜索 | Google 为主 | 百度/搜狗/SearXNG 可配 |
-| LLM 提取 | 按 credits 收费 (OpenAI) | 本地 Ollama，零边际成本 |
-| 成本 | API 付费 | 完全免费 (AGPL) |
-
-> Firecrawl 是硅谷最好的 web scraping 引擎。但它在中国不可用。XHLS 填补这个真空。
+| Works in China | No (blocked + no Chinese search) | Yes (Alibaba Cloud / self-hosted) |
+| Chinese search | Google only | Baidu / Sogou / SearXNG configurable |
+| LLM extraction | Credits-based (OpenAI API) | Local Ollama — zero marginal cost |
+| Cost | Paid API | Free (AGPL) |
 
 ---
 
-## 能力矩阵
+## Capabilities (11-in-1)
 
-| # | 能力 | 对标 Firecrawl | 命令示例 |
-|---|------|:---:|---|
+| # | Capability | Firecrawl Equivalent | Usage |
+|---|-----------|:---:|---|
 | 1 | **scrape** | `/scrape` | `scrape("https://example.com")` |
 | 2 | **search** | `/search` | `search_web("keyword")` |
 | 3 | **map** | `/map` | `map_site("https://example.com")` |
@@ -41,40 +41,40 @@
 | 10 | **interact** | `/interact` | `browser_interact("url", actions)` |
 | 11 | **session** | — | `browser_session_save/load("name")` |
 
-> `extract-llm` 用本地 Ollama (qwen2.5:7b) 做语义提取。零 API 费用，无限量调用。
+> `extract-llm` uses local Ollama (qwen2.5:7b) for semantic extraction. Zero API cost, unlimited calls.
 
 ---
 
-## 快速开始
+## Quick Start
 
-### 安装
+### Install
 
 ```bash
-# 基础安装（scrape / search / map / crawl / download / monitor）
-pip install xhls_scraper
+# Basic (scrape / search / map / crawl / download / monitor)
+pip install chinacrawl
 
-# 完整安装（含 Playwright 浏览器交互）
-pip install xhls_scraper[full]
+# Full (includes Playwright for browser interaction)
+pip install chinacrawl[full]
 
-# 本地 LLM 提取（可选，需 Ollama）
+# LLM extraction (optional, requires Ollama)
 ollama pull qwen2.5:7b
 ```
 
-### 3 行代码上手
+### 3 Lines to Start
 
 ```python
-from xhls_scraper import scrape, search_web, extract_llm
+from chinacrawl import scrape, search_web, extract_llm
 
-# 抓取任意网页 -> Markdown
+# Any URL -> Markdown
 result = scrape("https://example.com")
 print(result.content[:200])
 
-# 搜索 Web
+# Web search
 results = search_web("Python web scraping", max_results=5)
 for r in results:
     print(f"{r.title}: {r.url}")
 
-# LLM 结构化提取（零成本）
+# LLM-powered structured extraction (zero cost!)
 data = extract_llm("https://news.ycombinator.com", {
     "top_story": "h1",
     "all_headlines": "a.storylink"
@@ -82,76 +82,76 @@ data = extract_llm("https://news.ycombinator.com", {
 print(data.data)
 ```
 
-### CLI 模式
+### CLI
 
 ```bash
-python xhls_scraper.py  # 运行内置 11 项全能力测试
+python chinacrawl.py  # Run built-in 11-capability test suite
 ```
 
 ---
 
-## 架构
+## Architecture
 
 ```
-XHLS Scraper
+ChinaCrawl
 ├── Scrape:   jina.ai + trafilatura  ->  Markdown
-├── Search:   SearXNG                ->  List[Result]
-├── Map:      trafilatura            ->  List[PageLink]
-├── Crawl:    BFS 递归               ->  CrawlResult
-├── Download: Map + Scrape           ->  {url}.md 文件树
-├── Monitor:  Hash + AI Judge        ->  MonitorResult
-├── Extract:  CSS + Ollama qwen      ->  dict/JSON
-└── Interact: Playwright             ->  BrowserResult
+├── Search:   SearXNG (self-hosted or public)
+├── Map:      trafilatura link discovery
+├── Crawl:    BFS recursive extraction
+├── Download: Map + Scrape -> local {url}.md files
+├── Monitor:  Hash + AI Judge (noise-stripped)
+├── Extract:  CSS selector + Ollama qwen (semantic)
+└── Interact: Playwright browser automation
 ```
 
 ---
 
-## 商业场景
+## Use Cases
 
-- 金融数据 — 批量抓取央行/证监会公告，结构化入仓
-- 电商竞品 — 京东/天猫对手定价与库存监控
-- 法规合规 — 政府法规站全量归档 + 版本对比
-- 招标监控 — 政府采购网新标讯即时推送 (AI 去噪)
-- RAG 数据 — 任意文档站 -> 离线 markdown -> Dify/LangChain
-
----
-
-## 免责声明
-
-> **XHLS Scraper 是数据提取工具，不是 AI 服务。**
->
-> **重要: 使用者自行承担全部法律责任。** 本工具提供的是通用数据采集能力。使用者必须：
-> - 遵守目标网站的 robots.txt 和服务条款
-> - 确保数据采集行为符合当地法律法规（含《网络安全法》《数据安全法》《个人信息保护法》）
-> - 获取必要的授权和同意
-> - 不将本工具用于任何非法目的
->
-> XHLS Scraper 作者及贡献者不对使用者的任何行为承担法律责任。
->
-> `extract-llm` 功能依赖用户自行安装的 Ollama 模型。用户应确保所使用的模型许可证（如 Apache 2.0、MIT、Llama Community License）允许其预期用途。XHLS Scraper 默认使用 qwen2.5:7b（Apache 2.0，商用无限制）。
->
-> 请遵守目标网站的 robots.txt 和服务条款。本工具仅供合法用途。
+- Financial data — batch scrape central bank / SEC announcements
+- E-commerce intel — monitor competitor pricing on JD / Tmall
+- Legal compliance — archive government regulations with version diff
+- Bid monitoring — real-time government procurement alerts (AI de-noised)
+- RAG pipelines — any website -> offline markdown -> Dify / LangChain
 
 ---
 
-## 许可证
+## Disclaimer
 
-GNU Affero General Public License v3.0 — 自由使用、修改、分发。但如果你改了代码并通过网络提供服务，必须公开源码。
+> **ChinaCrawl is a data extraction tool, NOT an AI service.**
+>
+> **IMPORTANT: Users assume all legal responsibility.** ChinaCrawl provides general-purpose data collection capabilities. Users must:
+> - Respect target websites' robots.txt and terms of service
+> - Comply with applicable laws (including China's Cybersecurity Law, Data Security Law, Personal Information Protection Law)
+> - Obtain necessary permissions and consent
+> - Not use this tool for any illegal purpose
+>
+> ChinaCrawl authors and contributors bear no legal liability for users' actions.
+>
+> The `extract-llm` feature depends on user-installed Ollama models. Users must ensure their chosen model's license (Apache 2.0, MIT, Llama Community, etc.) permits their intended use. ChinaCrawl defaults to qwen2.5:7b (Apache 2.0, no restrictions).
+>
+> Respect robots.txt and terms of service. For legitimate use only.
 
 ---
 
-## 路线图
+## License
 
-- [x] 11 合 1 核心能力
-- [x] SearXNG 搜索集成
-- [x] AI Judge 噪声过滤
-- [ ] 中文搜索引擎配置（百度/搜狗）
-- [ ] PyPI 发布
-- [ ] Docker 一键部署
-- [ ] 托管版 API (xhls_scraper.cloud)
+GNU Affero General Public License v3.0 — Free to use, modify, and distribute. Modified versions served over a network must disclose source code.
+
+---
+
+## Roadmap
+
+- [x] 11-in-1 core capabilities
+- [x] SearXNG search integration
+- [x] AI Judge noise filtering
+- [ ] Chinese search engine config (Baidu / Sogou)
+- [ ] PyPI release
+- [ ] Docker one-click deployment
+- [ ] Managed API (chinacrawl.cloud)
 
 ---
 
 <p align="center">
-  <sub>Built by Xiao Hei · XHLS (eXtensible Hyper-Light Scraper) · 2026</sub>
+  <sub>Built by Xiao Hei · ChinaCrawl · 2026</sub>
 </p>

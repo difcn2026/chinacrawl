@@ -1,14 +1,14 @@
-"""xhls_scraper basic usage examples.
+"""ChinaCrawl basic usage examples.
 
 Requirements:
-    pip install xhls_scraper
+    pip install chinacrawl
 
 Optional (for full features):
-    pip install xhls_scraper[full]
+    pip install chinacrawl[full]
     ollama pull qwen2.5:7b
 """
 
-from xhls_scraper import (
+from chinacrawl import (
     scrape, search_web, map_site, crawl_site,
     download_site, monitor_page, monitor_page_ai,
     extract_structured, extract_llm,
@@ -83,7 +83,7 @@ def example_llm_extract():
 
 
 if __name__ == "__main__":
-    print("xhls_scraper Examples")
+    print("ChinaCrawl Examples")
     print("=" * 50)
 
     example_scrape()

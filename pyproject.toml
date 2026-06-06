@@ -3,9 +3,9 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
-name = "xhls_scraper"
+name = "chinacrawl"
 version = "0.1.0"
-description = "XHLS (eXtensible Hyper-Light Scraper) ? China-optimized web data engine: scrape, search, crawl, monitor, download, extract. The Firecrawl alternative that works in China."
+description = "ChinaCrawl ? The Firecrawl alternative that works in China. 11-in-1 web data engine: scrape, search, crawl, monitor, download, extract. Zero external API cost."
 authors = [{ name = "Xiao Hei (XHLS)", email = "xhls@example.com" }]
 license = { file = "LICENSE" }
 readme = "README.md"
@@ -33,12 +33,12 @@ full = ["playwright>=1.40"]
 dev = ["pytest>=7", "pytest-asyncio"]
 
 [project.urls]
-Homepage = "https://github.com/xiaohei/xhls_scraper"
-Repository = "https://github.com/xiaohei/xhls_scraper"
-Issues = "https://github.com/xiaohei/xhls_scraper/issues"
+Homepage = "https://github.com/xiaohei/chinacrawl"
+Repository = "https://github.com/xiaohei/chinacrawl"
+Issues = "https://github.com/xiaohei/chinacrawl/issues"
 
 [tool.setuptools]
-py-modules = ["xhls_scraper"]
+py-modules = ["chinacrawl"]
 
 [tool.setuptools.package-data]
 "*" = ["LICENSE", "README.md"]
