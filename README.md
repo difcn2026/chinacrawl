@@ -7,12 +7,12 @@
 # xhls_scraper · 小黑爬虫
 
 > **中国可用的 Firecrawl 平替 —— 零外部付费依赖的 11 合 1 Web 数据引擎。**
->
-> *Firecrawl alternative that actually works in China. 11-in-1 web data engine with zero external API cost.*
+
+*Firecrawl alternative that works in China. 11-in-1 web data engine with zero external API cost.*
 
 ---
 
-## 为什么需要 xhls_scraper？ / Why?
+## 为什么需要 xhls_scraper？
 
 | | Firecrawl | xhls_scraper |
 |---|---|---|
@@ -25,7 +25,7 @@
 
 ---
 
-## 能力矩阵 / Capabilities
+## 能力矩阵
 
 | # | 能力 | 对标 Firecrawl | 命令示例 |
 |---|------|:---:|---|
@@ -45,9 +45,9 @@
 
 ---
 
-## 快速开始 / Quick Start
+## 快速开始
 
-### 安装 / Install
+### 安装
 
 ```bash
 # 基础安装（scrape / search / map / crawl / download / monitor）
@@ -60,7 +60,7 @@ pip install xhls_scraper[full]
 ollama pull qwen2.5:7b
 ```
 
-### 3 行代码上手 / 3 Lines to Start
+### 3 行代码上手
 
 ```python
 from xhls_scraper import scrape, search_web, extract_llm
@@ -74,7 +74,7 @@ results = search_web("Python web scraping", max_results=5)
 for r in results:
     print(f"{r.title}: {r.url}")
 
-# LLM 结构化提取（零成本！）
+# LLM 结构化提取（零成本）
 data = extract_llm("https://news.ycombinator.com", {
     "top_story": "h1",
     "all_headlines": "a.storylink"
@@ -85,33 +85,28 @@ print(data.data)
 ### CLI 模式
 
 ```bash
-python xhls_scraper.py
-# 运行内置 11 项全能力测试
+python xhls_scraper.py  # 运行内置 11 项全能力测试
 ```
 
 ---
 
-## 架构 / Architecture
+## 架构
 
 ```
-┌──────────────────────────────────────────────────┐
-│                  xhls_scraper                     │
-├──────────────────────────────────────────────────┤
-│  Scrape:   jina.ai  ─┬─→  Markdown               │
-│            trafilatura┘                            │
-│  Search:   SearXNG (自建/公开)  ─→  List[Result] │
-│  Map:      trafilatura links  ─→  List[PageLink] │
-│  Crawl:    BFS 递归           ─→  CrawlResult    │
-│  Download: Map + Scrape       ─→  {url}.md 文件树│
-│  Monitor:  Hash + AI Judge    ─→  MonitorResult  │
-│  Extract:  CSS + Ollama qwen  ─→  dict/JSON      │
-│  Interact: Playwright         ─→  BrowserResult  │
-└──────────────────────────────────────────────────┘
+xhls_scraper
+├── Scrape:   jina.ai + trafilatura  →  Markdown
+├── Search:   SearXNG (自建/公开)     →  List[Result]
+├── Map:      trafilatura links      →  List[PageLink]
+├── Crawl:    BFS 递归               →  CrawlResult
+├── Download: Map + Scrape           →  {url}.md 文件树
+├── Monitor:  Hash + AI Judge        →  MonitorResult
+├── Extract:  CSS + Ollama qwen      →  dict/JSON
+└── Interact: Playwright             →  BrowserResult
 ```
 
 ---
 
-## 商业场景 / Use Cases
+## 商业场景
 
 - 📈 **金融数据** — 批量抓取央行/证监会公告，结构化入仓
 - 🛒 **电商竞品** — 京东/天猫对手定价与库存监控
@@ -119,13 +114,19 @@ python xhls_scraper.py
 - 🎯 **招标监控** — 政府采购网新标讯即时推送 (AI 去噪)
 - 🧠 **RAG 数据** — 任意文档站 → 离线 markdown → Dify/LangChain
 
-详见: [商业场景分析](./knowledge/pipeline-decisions/xhls-scraper-commercial-use-cases-2026-06-06.md)
-
 ---
 
-## 免责声明 / Disclaimer
+## 免责声明
 
 > **xhls_scraper 是数据提取工具，不是 AI 服务。**
+>
+> **重要: 使用者自行承担全部法律责任。** xhls_scraper 提供的是通用数据采集能力。使用者必须：
+> - 遵守目标网站的 robots.txt 和服务条款
+> - 确保数据采集行为符合当地法律法规（含《网络安全法》《数据安全法》《个人信息保护法》）
+> - 获取必要的授权和同意
+> - 不将本工具用于任何非法目的
+>
+> xhls_scraper 作者及贡献者不对使用者的任何行为承担法律责任。
 >
 > `extract-llm` 功能依赖用户自行安装的 Ollama 模型。用户应确保所使用的模型许可证（如 Apache 2.0、MIT、Llama Community License）允许其预期用途。xhls_scraper 默认使用 qwen2.5:7b（Apache 2.0，商用无限制）。
 >
@@ -133,13 +134,13 @@ python xhls_scraper.py
 
 ---
 
-## 许可证 / License
+## 许可证
 
 GNU Affero General Public License v3.0 — 自由使用、修改、分发。但如果你改了代码并通过网络提供服务，必须公开源码。
 
 ---
 
-## 路线图 / Roadmap
+## 路线图
 
 - [x] 11 合 1 核心能力
 - [x] SearXNG 搜索集成

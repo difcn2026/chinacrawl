@@ -33,12 +33,17 @@ MAX_RETRIES = 3
 USER_AGENT = "XHLS/3.0 (Xiao Hei)"
 MONITOR_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "monitor_cache")
 SESSION_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "browser_sessions")
-SEARXNG_INSTANCES = [
-    "http://47.236.24.76:9999",
-
-
-
-]
+SEARXNG_INSTANCES = []
+_env_url = os.environ.get("SEARXNG_URL", "")
+if _env_url:
+    SEARXNG_INSTANCES.append(_env_url)
+else:
+    # Public SearXNG instances (community-maintained)
+    # Set SEARXNG_URL env var to use your own instance
+    SEARXNG_INSTANCES = [
+        "https://searx.be",
+        "https://search.sapti.me",
+    ]
 
 CST = timezone(timedelta(hours=8))
 
