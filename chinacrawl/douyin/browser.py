@@ -573,3 +573,177 @@ def search_via_xhr(keyword: str, search_type: str = "general",
 
     log.info("XHR search complete: %d results for '%s'", len(all_results), keyword)
     return all_results[:max_results]
+
+
+def search_via_fetch(keyword: str, search_type: str = "general",
+                    cookie_file=None, headless: bool = True,
+                    max_results: int = 20) -> list:
+    """
+    Search Douyin via direct fetch() from within browser context.
+
+    This is the recommended search method. By executing fetch() inside
+    the browser's JavaScript context, all anti-bot signing (X-Bogus,
+    msToken, Shark) is handled transparently by the browser's security SDK.
+
+    Advantages over search_via_xhr:
+    - No scrolling needed (direct pagination via offset)
+    - More results per request (up to count=30 vs XHR's ~10)
+    - Cleaner data extraction (JSON parse in JS, return structured)
+    - Same session reused across calls
+
+    Args:
+        keyword: Search keyword
+        search_type: "general" (videos+users) or "user"
+        cookie_file: Path to saved cookies JSON
+        headless: Run browser in headless mode
+        max_results: Maximum results to return
+
+    Returns:
+        List of result dicts
+    """
+    import time as _time
+    import urllib.parse as _up
+
+    browser = launch_browser(headless=headless)
+    context = _create_context(browser, cookie_file=cookie_file)
+    page = context.new_page()
+
+    all_results = []
+    seen_items = set()
+
+    # API endpoint selection
+    if search_type == "user":
+        api_path = "/aweme/v1/web/discover/search/"
+        result_key = "user_list"
+    else:
+        api_path = "/aweme/v1/web/search/item/"
+        result_key = "data"
+
+    api_url = f"https://www.douyin.com{api_path}"
+
+    try:
+        # Step 1: Navigate to douyin.com to initialize session + security SDK
+        page.goto("https://www.douyin.com/", wait_until="domcontentloaded",
+                  timeout=BROWSER_NAV_TIMEOUT)
+        _time.sleep(4)
+
+        # Step 2: Extract msToken (may be generated during session init)
+        ms_token = page.evaluate("() => localStorage.getItem('xmst')") or ""
+
+        # Step 3: If no msToken, navigate to a search page to trigger SDK init
+        if not ms_token:
+            encoded = _up.quote(keyword)
+            page.goto(f"https://www.douyin.com/search/{encoded}?type={'general' if search_type == 'general' else 'user'}",
+                      wait_until="domcontentloaded", timeout=BROWSER_NAV_TIMEOUT)
+            _time.sleep(5)
+            ms_token = page.evaluate("() => localStorage.getItem('xmst')") or ""
+
+        # Step 4: Execute fetch() calls from within browser context
+        # This bypasses all anti-bot measures because the browser's
+        # security SDK signs requests transparently
+        offset = 0
+        pages_checked = 0
+        max_pages = 10  # Safety limit
+
+        while len(all_results) < max_results and pages_checked < max_pages:
+            count = min(20, max_results - len(all_results))
+
+            # Build query params
+            params = _up.urlencode({
+                'keyword': keyword,
+                'count': str(count),
+                'offset': str(offset),
+                'device_platform': 'webapp',
+                'aid': '6383',
+                'channel': 'channel_pc_web',
+                'search_source': 'normal_search',
+            })
+
+            result = page.evaluate("""
+                async ({api_url, params, msToken, search_type}) => {
+                    const headers = {
+                        'Accept': 'application/json',
+                        'Referer': 'https://www.douyin.com/',
+                    };
+                    if (msToken) headers['msToken'] = msToken;
+
+                    const url = api_url + '?' + params;
+                    const r = await fetch(url, { headers, credentials: 'include' });
+                    const d = await r.json();
+
+                    if (d.status_code !== 0) {
+                        return { error: true, msg: d.status_msg || 'API error', code: d.status_code };
+                    }
+
+                    const items = d.data || d.user_list || [];
+                    const results = [];
+
+                    for (const item of items) {
+                        if (search_type === 'user') {
+                            const ui = item.user_info || item;
+                            results.push({
+                                type: 'user',
+                                sec_uid: ui.sec_uid || '',
+                                nickname: ui.nickname || '',
+                                signature: ui.signature || '',
+                                follower_count: ui.follower_count || 0,
+                                aweme_count: ui.aweme_count || 0,
+                                verified: !!(ui.custom_verify || (ui.verification_type || 0) > 0),
+                                avatar_url: (ui.avatar_thumb && ui.avatar_thumb.url_list) ? ui.avatar_thumb.url_list[0] : '',
+                            });
+                        } else {
+                            const a = item.aweme_info || item;
+                            const stats = a.statistics || {};
+                            results.push({
+                                type: 'video',
+                                aweme_id: String(a.aweme_id || ''),
+                                desc: a.desc || '',
+                                digg_count: stats.digg_count || 0,
+                                comment_count: stats.comment_count || 0,
+                                share_count: stats.share_count || 0,
+                                play_count: stats.play_count || 0,
+                                duration: a.duration || 0,
+                                author: (a.author || {}).nickname || '',
+                            });
+                        }
+                    }
+
+                    return {
+                        results: results,
+                        has_more: d.has_more,
+                        cursor: d.cursor,
+                    };
+                }
+            """, {'api_url': api_url, 'params': params, 'msToken': ms_token, 'search_type': search_type})
+
+            if result.get('error'):
+                log.warning("Search fetch error: %s (code=%s)", result.get('msg'), result.get('code'))
+                break
+
+            items = result.get('results', [])
+            if not items:
+                break
+
+            # Deduplicate and collect
+            for item in items:
+                rid = item.get('sec_uid') or item.get('aweme_id')
+                if rid and rid not in seen_items:
+                    seen_items.add(rid)
+                    all_results.append(item)
+
+            pages_checked += 1
+            offset = result.get('cursor', offset + count)
+
+            if not result.get('has_more'):
+                break
+
+            _time.sleep(random_delay(800, 1500) / 1000)
+
+        log.info("Fetch search complete: %d results for '%s' (%d pages)",
+                 len(all_results), keyword, pages_checked)
+
+    finally:
+        page.close()
+        context.close()
+
+    return all_results[:max_results]

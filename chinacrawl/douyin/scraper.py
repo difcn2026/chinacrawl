@@ -1,4 +1,4 @@
-# XHLS v3.0 | 小黑 · Xiao Hei Learning System
+﻿# XHLS v3.0 | 小黑 · Xiao Hei Learning System
 # Douyin Adapter - Core Scraper Orchestrator
 # Created: 2026-06-07
 
@@ -325,7 +325,7 @@ def user_posts(sec_uid: str, max_pages: int = 0,
     total = 0
     
     # Auto-detect cookie file
-    if cookie_file is None and use_xhr:
+    if cookie_file is None and (use_xhr or use_fetch):
         for candidate in [
             os.path.join(os.path.dirname(__file__), "..", "..", ".cache", "sessions", "douyin_default.json"),
             os.path.join(os.path.dirname(__file__), "..", ".cache", "sessions", "douyin_default.json"),
@@ -335,6 +335,29 @@ def user_posts(sec_uid: str, max_pages: int = 0,
                 break
     
     # Channel 1: XHR Interception (Plan B - bypasses X-Bogus)
+    # Channel 0: Browser-context fetch()
+    if use_fetch and cookie_file:
+        try:
+            raw_results = browser.search_via_fetch(
+                keyword, search_type="user", max_results=max_results,
+                cookie_file=cookie_file
+            )
+            results = []
+            for r in raw_results:
+                results.append(UserInfo(
+                    sec_uid=r.get("sec_uid", ""),
+                    nickname=r.get("nickname", ""),
+                    follower_count=r.get("follower_count", 0),
+                    aweme_count=r.get("aweme_count", 0),
+                    signature=r.get("signature", ""),
+                    verified=r.get("verified", False),
+                ))
+            if results:
+                log.info("search_user fetch: %d results for '%s'", len(results), keyword)
+                return results
+        except Exception as e:
+            log.warning("Fetch search_user failed: %s, trying XHR...", e)
+
     if use_xhr and cookie_file:
         try:
             log.info("user_posts: Trying XHR interception channel...")
@@ -517,7 +540,8 @@ def video_comments(aweme_id: str, max_pages: int = 5) -> Generator[CommentInfo, 
 # Search Operations
 # ═══════════════════════════════════════════════════════════════
 
-def search(keyword: str, max_results: int = 20) -> List[SearchResult]:
+def search(keyword: str, max_results: int = 20, cookie_file=None,
+          use_xhr: bool = True, use_fetch: bool = True) -> List[SearchResult]:
     """
     通用搜索 (视频+用户+话题混合).
 
@@ -528,6 +552,82 @@ def search(keyword: str, max_results: int = 20) -> List[SearchResult]:
     Returns:
         SearchResult 列表
     """
+    # Auto-detect cookie file
+    import os as _os
+    if cookie_file is None and (use_xhr or use_fetch):
+        for candidate in [
+            _os.path.join(_os.path.dirname(__file__), "..", "sessions", "douyin_default.json"),
+            _os.path.join(_os.path.dirname(__file__), "..", "..", ".cache", "sessions", "douyin_default.json"),
+            _os.path.join(_os.path.dirname(__file__), "..", "..", "..", ".cache", "sessions", "douyin_default.json"),
+            r"C:\Users\Administrator\Documents\New project\src\.cache\sessions\douyin_default.json",
+            r"C:\Users\Administrator\Documents\New project\.cache\sessions\douyin_default.json",
+        ]:
+            if _os.path.exists(candidate):
+                cookie_file = candidate
+                break
+
+    # Channel 0: Browser-context fetch() — bypasses all anti-bot
+    if use_fetch and cookie_file:
+        try:
+            raw_results = browser.search_via_fetch(
+                keyword, search_type="general", max_results=max_results,
+                cookie_file=cookie_file
+            )
+            results = []
+            for r in raw_results:
+                sr = SearchResult(result_type=r.get("type", ""), raw=r)
+                if r.get("type") == "user":
+                    sr.user = UserInfo(
+                        sec_uid=r.get("sec_uid", ""),
+                        nickname=r.get("nickname", ""),
+                        follower_count=r.get("follower_count", 0),
+                        aweme_count=r.get("aweme_count", 0),
+                        verified=r.get("verified", False),
+                    )
+                elif r.get("type") == "video":
+                    sr.aweme = AwemeInfo(
+                        aweme_id=r.get("aweme_id", ""),
+                        desc=r.get("desc", ""),
+                        digg_count=r.get("digg_count", 0),
+                    )
+                results.append(sr)
+            if results:
+                log.info("search fetch: %d results for '%s'", len(results), keyword)
+                return results
+        except Exception as e:
+            log.warning("Fetch search failed: %s, trying XHR...", e)
+
+    # Channel 1: XHR Interception
+    if use_xhr and cookie_file:
+        try:
+            raw_results = browser.search_via_xhr(
+                keyword, search_type="general", max_results=max_results,
+                cookie_file=cookie_file
+            )
+            results = []
+            for r in raw_results:
+                sr = SearchResult(result_type=r.get("type", ""), raw=r)
+                if r.get("type") == "user":
+                    sr.user = UserInfo(
+                        sec_uid=r.get("sec_uid", ""),
+                        nickname=r.get("nickname", ""),
+                        follower_count=r.get("follower_count", 0),
+                        aweme_count=r.get("aweme_count", 0),
+                        verified=r.get("verified", False),
+                    )
+                elif r.get("type") == "video":
+                    sr.aweme = AwemeInfo(
+                        aweme_id=r.get("aweme_id", ""),
+                        desc=r.get("desc", ""),
+                        digg_count=r.get("digg_count", 0),
+                    )
+                results.append(sr)
+            if results:
+                log.info("search XHR: %d results for '%s'", len(results), keyword)
+                return results
+        except Exception as e:
+            log.warning("XHR search failed: %s, falling back to API...", e)
+    # Channel 2: API/Browser fallback
     results: List[SearchResult] = []
     offset = 0
 
@@ -585,8 +685,66 @@ def search(keyword: str, max_results: int = 20) -> List[SearchResult]:
     return results[:max_results]
 
 
-def search_user(keyword: str, max_results: int = 10) -> List[UserInfo]:
-    """搜索用户."""
+def search_user(keyword: str, max_results: int = 10, cookie_file=None,
+              use_xhr: bool = True, use_fetch: bool = True) -> List[UserInfo]:
+    """搜索用户 (XHR拦截优先)."""
+    import os as _os
+    if cookie_file is None and (use_xhr or use_fetch):
+        for candidate in [
+            _os.path.join(_os.path.dirname(__file__), "..", "sessions", "douyin_default.json"),
+            _os.path.join(_os.path.dirname(__file__), "..", "..", ".cache", "sessions", "douyin_default.json"),
+            _os.path.join(_os.path.dirname(__file__), "..", "..", "..", ".cache", "sessions", "douyin_default.json"),
+            r"C:\Users\Administrator\Documents\New project\src\.cache\sessions\douyin_default.json",
+            r"C:\Users\Administrator\Documents\New project\.cache\sessions\douyin_default.json",
+        ]:
+            if _os.path.exists(candidate):
+                cookie_file = candidate
+                break
+    # Channel 0: Browser-context fetch()
+    if use_fetch and cookie_file:
+        try:
+            raw_results = browser.search_via_fetch(
+                keyword, search_type="user", max_results=max_results,
+                cookie_file=cookie_file
+            )
+            results = []
+            for r in raw_results:
+                results.append(UserInfo(
+                    sec_uid=r.get("sec_uid", ""),
+                    nickname=r.get("nickname", ""),
+                    follower_count=r.get("follower_count", 0),
+                    aweme_count=r.get("aweme_count", 0),
+                    signature=r.get("signature", ""),
+                    verified=r.get("verified", False),
+                ))
+            if results:
+                log.info("search_user fetch: %d results", len(results))
+                return results
+        except Exception as e:
+            log.warning("Fetch search_user failed: %s, trying XHR...", e)
+
+    if use_xhr and cookie_file:
+        try:
+            raw_results = browser.search_via_xhr(
+                keyword, search_type="user", max_results=max_results,
+                cookie_file=cookie_file
+            )
+            results = []
+            for r in raw_results:
+                results.append(UserInfo(
+                    sec_uid=r.get("sec_uid", ""),
+                    nickname=r.get("nickname", ""),
+                    follower_count=r.get("follower_count", 0),
+                    aweme_count=r.get("aweme_count", 0),
+                    signature=r.get("signature", ""),
+                    verified=r.get("verified", False),
+                ))
+            if results:
+                log.info("search_user XHR: %d results", len(results))
+                return results
+        except Exception as e:
+            log.warning("XHR search_user failed: %s, falling back...", e)
+    # API/Browser fallback
     results = []
     offset = 0
 

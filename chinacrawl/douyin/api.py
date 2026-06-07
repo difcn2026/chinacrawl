@@ -13,6 +13,8 @@
 import hashlib
 import json
 import logging
+import os
+import subprocess
 import time
 import urllib.parse
 from typing import Optional, Generator
@@ -28,6 +30,45 @@ from .config import (
 log = logging.getLogger("chinacrawl.douyin.api")
 
 # ━━━ Session ━━━
+
+
+# X-Bogus signing bridge (Node.js)
+_XBOGUS_BRIDGE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "scripts", "xbogus_bridge.js")
+# Fallback paths
+if not os.path.exists(_XBOGUS_BRIDGE):
+    _XBOGUS_BRIDGE = os.path.join(os.path.dirname(__file__), "..", "..", "scripts", "xbogus_bridge.js")
+_XBOGUS_CACHE = {}  # Simple cache: query_string -> xbogus
+
+# Browser params required by douyin API
+_BROWSER_PARAMS = (
+    "device_platform=webapp&aid=6383&channel=channel_pc_web"
+    "&update_version_code=170400&pc_client_type=1"
+    "&version_code=190600&version_name=19.6.0"
+    "&cookie_enabled=true&screen_width=1920&screen_height=1080"
+    "&browser_language=zh-CN&browser_platform=Win32"
+    "&browser_name=Chrome&browser_version=131.0.0.0"
+    "&browser_online=true&engine_name=Blink&engine_version=131.0.0.0"
+    "&os_name=Windows&os_version=10&cpu_core_num=8&device_memory=8&platform=PC"
+)
+
+
+def _sign_xbogus(query_string: str) -> str:
+    """Generate X-Bogus via Node.js bridge (with caching)."""
+    if query_string in _XBOGUS_CACHE:
+        return _XBOGUS_CACHE[query_string]
+    try:
+        result = subprocess.run(
+            ["node", _XBOGUS_BRIDGE, query_string, random_ua()],
+            capture_output=True, text=True, timeout=5,
+            cwd=os.path.dirname(_XBOGUS_BRIDGE)
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            xb = result.stdout.strip()
+            _XBOGUS_CACHE[query_string] = xb
+            return xb
+    except Exception:
+        pass
+    raise DouyinAPIError(code=-2, message="X-Bogus signing failed")
 _session: Optional[httpx.Client] = None
 
 
@@ -41,6 +82,7 @@ def _get_client(proxy: Optional[str] = None) -> httpx.Client:
             headers={**COMMON_HEADERS, "User-Agent": random_ua()},
             proxy=proxy,
         )
+    _apply_cookies(_session)
     return _session
 
 
@@ -50,6 +92,27 @@ def close_client():
         _session.close()
         _session = None
 
+
+# Cookie management
+_cookies: dict = {}  # name -> value dict for httpx
+
+def load_cookies(cookie_file: str) -> int:
+    """Load cookies from Playwright-format JSON file."""
+    global _cookies
+    with open(cookie_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    cookies = data.get("cookies", data if isinstance(data, list) else [])
+    _cookies = {}
+    for c in cookies:
+        _cookies[c["name"]] = c["value"]
+    log.info("Loaded %d cookies from %s", len(_cookies), cookie_file)
+    return len(_cookies)
+
+def _apply_cookies(client: httpx.Client) -> None:
+    """Apply loaded cookies to httpx client."""
+    if _cookies:
+        cookie_str = "; ".join(f"{k}={v}" for k, v in _cookies.items())
+        client.headers["Cookie"] = cookie_str
 
 # ━━━ Helpers ━━━
 
@@ -123,6 +186,16 @@ class DouyinRateLimitError(DouyinAPIError):
 def _get(endpoint: str, **params) -> dict:
     """通用 GET 请求"""
     url = _build_url(endpoint, **params)
+    # Append browser params + X-Bogus signing
+    parsed = urllib.parse.urlparse(url)
+    q = parsed.query
+    q = (q + "&" + _BROWSER_PARAMS) if q else _BROWSER_PARAMS
+    try:
+        xb = _sign_xbogus(q)
+        q = q + "&X-Bogus=" + urllib.parse.quote(xb, safe="")
+    except DouyinAPIError:
+        pass
+    url = API_BASE + API_ENDPOINTS[endpoint] + "?" + q
     headers = _get_headers(referer=API_BASE + "/")
     client = _get_client()
 
