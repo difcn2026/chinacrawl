@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chinacrawl"
-version = "0.1.0"
-description = "ChinaCrawl ? The Firecrawl alternative that works in China. 11-in-1 web data engine: scrape, search, crawl, monitor, download, extract. Zero external API cost."
+version = "0.2.0"
+description = "ChinaCrawl - The Firecrawl alternative that works in China. 12-in-1 web data engine: scrape, search, crawl, monitor, download, extract, douyin. Zero external API cost."
 authors = [{ name = "Xiao Hei (XHLS)", email = "difcn2026@users.noreply.github.com" }]
 license = { file = "LICENSE" }
 readme = "README.md"
-keywords = ["web-scraping", "crawler", "search", "monitor", "markdown", "firecrawl", "china"]
+keywords = ["web-scraping", "crawler", "search", "monitor", "markdown", "firecrawl", "china", "douyin", "tiktok", "x-bogus"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -37,8 +37,8 @@ Homepage = "https://github.com/difcn2026/chinacrawl"
 Repository = "https://github.com/difcn2026/chinacrawl"
 Issues = "https://github.com/difcn2026/chinacrawl/issues"
 
-[tool.setuptools]
-py-modules = ["chinacrawl"]
+[tool.setuptools.packages.find]
+include = ["chinacrawl", "chinacrawl.*"]
 
 [tool.setuptools.package-data]
 "*" = ["LICENSE", "README.md"]

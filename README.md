@@ -6,9 +6,9 @@
 
 # ChinaCrawl
 
-> **The Firecrawl alternative that works in China. 11-in-1 web data engine — zero external API cost.**
+> **The Firecrawl alternative that works in China. 12-in-1 web data engine — zero external API cost.**
 >
-> 中国版 Firecrawl。11 合 1 Web 数据引擎 — 零外部付费依赖。
+> 中国版 Firecrawl。12 合 1 Web 数据引擎 — 零外部付费依赖。
 
 ---
 
@@ -25,7 +25,7 @@ Firecrawl is the best web scraping engine from Silicon Valley. But it's blocked 
 
 ---
 
-## Capabilities (11-in-1)
+## Capabilities (12-in-1)
 
 | # | Capability | Firecrawl Equivalent | Usage |
 |---|-----------|:---:|---|

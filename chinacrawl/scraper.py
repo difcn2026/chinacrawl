@@ -1,5 +1,5 @@
-﻿# ChinaCrawl - China-optimized web data engine (Firecrawl alternative)
-# 11-in-1: scrape | search | map | crawl | download | monitor | monitor-ai | extract | extract-llm | interact | session
+# ChinaCrawl - China-optimized web data engine (Firecrawl alternative)
+# 12-in-1: scrape | search | map | crawl | download | monitor | monitor-ai | extract | extract-llm | interact | session
 # License: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html
 # Copyright (C) 2026 ChinaCrawl Contributors
 #
@@ -964,6 +964,10 @@ CAPABILITIES = {
     "interact": {"func": "browser_interact", "desc": "Browser interaction (Playwright)",  "fc": "/interact"},
     "extract":  {"func": "extract_structured","desc": "Structured data extraction",       "fc": "/extract"},
     "extract-llm":{"func": "extract_llm",       "desc": "LLM semantic extraction (Ollama)",   "fc": "/extract-llm"},
+    "douyin-user-posts": {"func": "douyin_user_posts", "desc": "Douyin user posts (XHR bypass)", "fc": "/douyin/user/posts"},
+    "douyin-search": {"func": "douyin_search", "desc": "Douyin video/user/hashtag search", "fc": "/douyin/search"},
+    "douyin-download": {"func": "douyin_video_download", "desc": "Douyin video download", "fc": "/douyin/video/download"},
+    "douyin-monitor": {"func": "douyin_monitor_user", "desc": "Douyin user change monitor", "fc": "/douyin/monitor"},
 }
 
 
@@ -1044,7 +1048,7 @@ if __name__ == "__main__":
         print(f"  Error: {ler.error}")
 
     print("\\n" + "="*60)
-    print("Capabilities (11 total):")
+    print("Capabilities (15 total):")
     for name, info in CAPABILITIES.items():
         icon = "OK" if True else "??"  # all imported = all OK
         print(f"  [{icon}] {name:12s} {info['desc']:45s} (FC: {info['fc']})")
