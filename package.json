@@ -1,0 +1,19 @@
+{
+  "name": "new-project",
+  "version": "1.0.0",
+  "description": "**中国版 Firecrawl — 11合1开源网页数据引擎，零外部API成本**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "xbogus": "^1.0.2"
+  }
+}

@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+proxy-deploy/
+tools/
+*.log
+*.zip
+*.rdp
+bridge.log*
+bridge.err*
+proxy.log
+*.json
+!package.json
+
+# Temp/debug files
+_check_*.py
+_chk_*.py
+_dbg*.py
+_hist.py
+_q.py
+_temp_*.py
+
+# Output artifacts
+comfy_out.txt
+out.txt
+stages.txt
+feishu_doc*.txt
+feishu_doc*.html
+
+# Projects (not part of the package)
+projects/
+proxy-package.zip
+queue.json
+
+# Large binaries
+ffmpeg.zip
+bin64/
+
+# Monitor data
+mentions.json
+
+# Keep important files
+!README.md
+!LICENSE
+!pyproject.toml
+!src/
+!docs/v2ex-post.md
+!knowledge/

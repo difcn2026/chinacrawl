@@ -1,0 +1,18 @@
+import paramiko, time
+c = paramiko.SSHClient()
+c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+c.connect('47.236.24.76', username='root', password='DiFCN2026-2026', timeout=15)
+def run(cmd, t=10):
+    stdin, stdout, stderr = c.exec_command(cmd, timeout=t)
+    return stdout.read().decode() + stderr.read().decode()
+print('=== Containers ===')
+print(run('podman ps -a'))
+print('=== Nginx logs ===')
+print(run('podman logs searxng-proxy 2>&1 | tail -10'))
+print('=== Direct SearXNG ===')
+print(run('curl -s -o /dev/null -w "%{http_code}" -X POST "http://localhost:9999/search?q=test&format=json"'))
+print('=== Nginx root ===')
+print(run('curl -s -o /dev/null -w "%{http_code}" http://localhost:7777/'))
+print('=== Landing page ===')
+print(run('curl -s -w "\\nHTTP:%{http_code}" http://localhost:7777/chinacrawl | tail -3'))
+c.close()
