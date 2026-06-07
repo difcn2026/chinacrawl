@@ -436,3 +436,140 @@ def collect_user_posts_via_xhr(sec_uid: str, cookie_file: str = None,
         # Don't close browser - let caller manage it
     
     return collected
+
+
+# XHR Interception based search (bypasses X-Bogus)
+def search_via_xhr(keyword: str, search_type: str = "general",
+                   max_results: int = 30, cookie_file: str = None,
+                   headless: bool = True) -> list[dict]:
+    """
+    Search Douyin by intercepting browser XHR API calls.
+
+    The browser makes properly-signed search requests internally.
+    We intercept the responses to bypass X-Bogus signing and msToken checks.
+
+    Args:
+        keyword: Search keyword
+        search_type: "general" (mixed), "user" (users only), "video" (videos only)
+        max_results: Max results to return
+        cookie_file: Path to saved cookies JSON
+        headless: Run browser in headless mode
+
+    Returns:
+        List of result dicts with keys depending on search_type
+    """
+    import time as _time
+    import urllib.parse as _up
+
+    browser = launch_browser(headless=headless)
+    context = _create_context(browser, cookie_file=cookie_file)
+    page = context.new_page()
+
+    all_results = []
+    seen_items = set()
+
+    # Browser uses /aweme/v1/web/general/search/ internally
+    # We match on path substring to catch both /stream/ and /single/ variants
+    type_map = {
+        "general": ("general", "/aweme/v1/web/general/search/"),
+        "user": ("user", "/aweme/v1/web/general/search/"),
+        "video": ("video", "/aweme/v1/web/general/search/"),
+    }
+    url_type, api_path = type_map.get(search_type, type_map["general"])
+
+    def _on_response(response):
+        url = response.url
+        if api_path not in url:
+            return
+        if response.status != 200:
+            return
+        try:
+            # Douyin search API uses chunked transfer encoding
+            # Body may look like: 18d9a\\r\\n{...json...}\\r\\n0\\r\\n\\r\\n
+            # Extract JSON by finding first { and last }
+            body = response.text()
+            start = body.find("{")
+            end = body.rfind("}")
+            if start >= 0 and end > start:
+                data = json.loads(body[start:end+1])
+            else:
+                data = json.loads(body)
+        except Exception:
+            return
+
+        items = data.get("data", data.get("user_list", []))
+        if not items:
+            return
+
+        for item in items:
+            if search_type == "user":
+                user_info = item.get("user_info", item)
+                rid = user_info.get("sec_uid", user_info.get("uid", ""))
+                if rid and rid not in seen_items:
+                    seen_items.add(rid)
+                    all_results.append({
+                        "type": "user",
+                        "sec_uid": rid,
+                        "nickname": user_info.get("nickname", ""),
+                        "signature": user_info.get("signature", ""),
+                        "follower_count": user_info.get("follower_count", 0),
+                        "aweme_count": user_info.get("aweme_count", 0),
+                        "verified": bool(user_info.get("custom_verify") or user_info.get("verification_type", 0) > 0),
+                        "avatar_url": (user_info.get("avatar_thumb", {}).get("url_list", [""])[0] if isinstance(user_info.get("avatar_thumb"), dict) else ""),
+                        "raw": user_info,
+                    })
+            else:
+                # General or video search
+                aweme = item.get("aweme_info", item)
+                rid = str(aweme.get("aweme_id", ""))
+                if rid and rid not in seen_items:
+                    seen_items.add(rid)
+                    stats = aweme.get("statistics", {})
+                    all_results.append({
+                        "type": "video",
+                        "aweme_id": rid,
+                        "desc": aweme.get("desc", ""),
+                        "digg_count": stats.get("digg_count", 0),
+                        "comment_count": stats.get("comment_count", 0),
+                        "share_count": stats.get("share_count", 0),
+                        "play_count": stats.get("play_count", 0),
+                        "duration": aweme.get("duration", 0),
+                        "author": (aweme.get("author", {}).get("nickname", "")),
+                        "raw": aweme,
+                    })
+
+    page.on("response", _on_response)
+
+    try:
+        encoded = _up.quote(keyword)
+        url = f"https://www.douyin.com/search/{encoded}?type={url_type}"
+        page.goto(url, wait_until="domcontentloaded", timeout=BROWSER_NAV_TIMEOUT)
+        _time.sleep(5)  # Wait for initial search XHR to complete
+
+        log.info("XHR search initial: %d results for '%s'", len(all_results), keyword)
+
+        # Scroll to trigger more results
+        for round_num in range(15):
+            if len(all_results) >= max_results:
+                break
+
+            page.evaluate("""() => {
+                const container = document.querySelector('.route-scroll-container');
+                if (container) {
+                    container.scrollTo(0, container.scrollHeight);
+                }
+                window.scrollTo(0, document.body.scrollHeight);
+            }""")
+            _time.sleep(2.0)
+
+            prev_len = len(all_results)
+            if prev_len == 0 and round_num >= 2:
+                # No results after initial wait + scrolls
+                break
+
+    finally:
+        page.close()
+        context.close()
+
+    log.info("XHR search complete: %d results for '%s'", len(all_results), keyword)
+    return all_results[:max_results]
