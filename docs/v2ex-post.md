@@ -3,7 +3,7 @@
 ## 节点：分享创造 (create)
 
 ## 标题（三选一）
-1. ChinaCrawl — 中国版 Firecrawl，11合1开源网页数据引擎，零外部API成本
+1. ChinaCrawl — 中国版 Firecrawl，多合一开源数据引擎 + 抖音/PDD适配器，零外部API成本
 2. 受不了 Firecrawl 没中文搜索？我写了个开源的替代品 ChinaCrawl
 3. [开源] ChinaCrawl：支持百度搜索 + 本地 Ollama 的网页抓取引擎
 
