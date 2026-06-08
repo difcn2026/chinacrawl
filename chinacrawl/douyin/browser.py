@@ -63,9 +63,24 @@ def close_browser():
     # Don't stop playwright - keep it alive for reuse
 
 
-def _create_context(browser, cookie_file: Optional[str] = None):
+def _create_context(browser, cookie_file: Optional[str] = None,
+                    proxy: Optional[dict] = None):
     """创建带反检测配置的浏览器上下文"""
     context = browser.new_context(**CONTEXT_OVERRIDES)
+
+    # Apply proxy only if explicitly passed (for China/HK nodes)
+    if proxy:
+        context_kwargs = dict(CONTEXT_OVERRIDES)
+        context_kwargs['proxy'] = proxy
+        context = browser.new_context(**context_kwargs)
+    else:
+        context = browser.new_context(**CONTEXT_OVERRIDES)
+
+    # NOTE: Proxy is intentionally NOT set here. Douyin.com needs direct connection
+    # (or a China/HK proxy node) to serve the full version with search API.
+    # Setting a non-China proxy causes douyin to redirect to '抖音精选电脑版'
+    # which lacks search functionality. If your network requires a proxy,
+    # ensure the proxy node has a Chinese or Hong Kong IP.
 
     # 注入反检测脚本（每个新页面自动注入）
     context.add_init_script(ANTI_DETECT_JS)
@@ -627,6 +642,15 @@ def search_via_fetch(keyword: str, search_type: str = "general",
                   timeout=BROWSER_NAV_TIMEOUT)
         _time.sleep(4)
 
+        # Step 1b: Detect lightweight version (caused by non-China proxy IP)
+        page_title = page.title()
+        if '精选电脑版' in page_title or '精选' in page_title:
+            log.warning(
+                "Detected 'Douyin Lite' (抖音精选电脑版) — search API unavailable. "\
+                "This happens when your proxy node IP is outside China/HK. "\
+                "Switch to a Hong Kong or mainland China proxy node for full search support."
+            )
+
         # Step 2: Extract msToken (may be generated during session init)
         ms_token = page.evaluate("() => localStorage.getItem('xmst')") or ""
 
@@ -717,7 +741,16 @@ def search_via_fetch(keyword: str, search_type: str = "general",
             """, {'api_url': api_url, 'params': params, 'msToken': ms_token, 'search_type': search_type})
 
             if result.get('error'):
-                log.warning("Search fetch error: %s (code=%s)", result.get('msg'), result.get('code'))
+                code = result.get('code')
+                msg = result.get('msg', '')
+                log.warning("Search fetch error: %s (code=%s)", msg, code)
+                if code == 2483:
+                    log.warning(
+                        "Code 2483 = login required. Your cookies may have expired. "\
+                        "Run chinacrawl.douyin.session.login() to re-authenticate via QR code."
+                    )
+                elif code == 2481:
+                    log.warning("Code 2481 = rate limited. Reduce request frequency.")
                 break
 
             items = result.get('results', [])
