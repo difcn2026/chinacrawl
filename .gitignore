@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -33,6 +33,11 @@ proxy.log
 !package.json
 
 # Temp/debug files
+_*.py
+_*.png
+pdd_*.py
+test_pdd*.py
+search_*.py
 _check_*.py
 _chk_*.py
 _dbg*.py
