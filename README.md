@@ -30,6 +30,41 @@ ChinaCrawl 填这个坑。
 
 ## 快速开始
 
+## 平台适配器（中国平台专用）
+
+ChinaCrawl 内置了中国主流平台的专用适配器，处理登录、反爬、签名等平台特有逻辑。
+
+### 抖音（Douyin）
+
+```python
+from chinacrawl.douyin import search, user_info, login
+
+# QR扫码登录（30天内有效）
+login()  # 打开浏览器 → 扫码 → 自动保存cookie
+
+# 搜索用户
+results = search("碎菜机", search_type="user", max_results=20)
+for r in results:
+    print(r.nickname, r.follower_count)
+
+# 获取用户详情
+info = user_info("MS4wLjABAAAAxxx")
+print(info.nickname, info.signature)
+```
+
+| 功能 | 状态 | 说明 |
+|------|:--:|------|
+| QR扫码登录 | ✅ | 浏览器可视化，cookie持久化 |
+| 用户搜索 | ✅ | XHR拦截 + fetch_user_info API |
+| 用户详情 | ✅ | X-Bogus签名通道 |
+| 用户作品 | ✅ | API / XHR双通道 |
+
+> ⚠️ **代理要求**：抖音会根据IP地理位置返回不同版本。非中国/香港IP会得到「抖音精选电脑版」轻量版（无搜索功能）。使用前确保代理节点有中国或香港IP。适配器会在检测到轻量版时自动输出警告。
+
+### 拼多多（PDD）
+
+> 适配器中，登录方案开发中。详见 `projects/碎菜机分析/PDD_ADAPTER_STATUS.md`
+
 ```bash
 pip install chinacrawl
 ```
