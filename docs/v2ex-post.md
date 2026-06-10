@@ -1,0 +1,79 @@
+# V2EX 推广帖
+
+## 节点：分享创造 (create)
+
+## 标题（三选一）
+1. ChinaCrawl — 中国版 Firecrawl，多合一开源数据引擎 + 抖音/PDD适配器，零外部API成本
+2. 受不了 Firecrawl 没中文搜索？我写了个开源的替代品 ChinaCrawl
+3. [开源] ChinaCrawl：支持百度搜索 + 本地 Ollama 的网页抓取引擎
+
+---
+
+## 正文
+
+Firecrawl 是 GitHub 上最火的网页抓取引擎——搜索、爬取、LLM 提取一条龙。但它在中国有两个致命伤：
+
+1. **没有中文搜索引擎支持** —— 后端只有 Google/Bing，百度搜狗全没有
+2. **LLM 提取走 OpenAI API** —— 按量计费，爬 1000 页烧几十刀
+
+所以我写了 ChinaCrawl，定位就是「中国开发者的 Firecrawl」。
+
+---
+
+### 11 合 1 能力
+
+| 能力 | 一行代码 |
+|------|---------|
+| 网页抓取 | `scrape("https://example.com")` |
+| 网页搜索 | `search_web("关键词")` |
+| 站点地图 | `map_site("https://example.com")` |
+| 整站爬取 | `crawl_site("https://example.com")` |
+| 整站下载 | `download_site("url", "output/")` |
+| 变化监控 | `monitor_page("url")` |
+| AI 监控 | `monitor_page_ai("url")` |
+| 结构化提取 | `extract_structured("url", schema)` |
+| LLM 提取 | `extract_llm("url", schema)` |
+| 浏览器交互 | `browser_interact("url", actions)` |
+| 会话保持 | `browser_session("url")` |
+
+---
+
+### 和 Firecrawl 的关键区别
+
+| | Firecrawl | ChinaCrawl |
+|---|---|---|
+| 中国可用 | ❌ 被墙 + 无中文搜索 | ✅ 阿里云自托管 |
+| 中文搜索 | 仅 Google | 百度 / 搜狗 / SearXNG 可配 |
+| LLM 提取 | OpenAI API（付费） | 本地 Ollama（qwen2.5 零成本） |
+| 费用 | Paid API | 免费开源 AGPL-3.0 |
+| 私有部署 | 企业版 | 自带，pip install 即用 |
+
+---
+
+### 快速开始
+
+```bash
+pip install chinacrawl
+```
+
+```python
+from chinacrawl import scrape, search_web, extract_llm
+
+# 抓网页
+result = scrape("https://example.com")
+
+# 搜中文
+results = search_web("Python 爬虫", max_results=10)
+
+# LLM 结构化提取（本地 Ollama，零成本）
+schema = {"title": "str", "price": "float", "desc": "str"}
+data = extract_llm("https://example.com/product", schema)
+```
+
+---
+
+GitHub: https://github.com/difcn2026/chinacrawl
+PyPI: https://pypi.org/project/chinacrawl/
+Gitee: https://gitee.com/difcn2026/chinacrawl
+
+刚发布不到 48 小时，求 star，求反馈 🙏

@@ -1,0 +1,33 @@
+{
+    "trends": [
+        {
+            "topic": "AI-generated short dramas",
+            "hotness": "S-class",
+            "audience": "mainly young adults and teenagers seeking novelty",
+            "hook_style": "unexpected plot twists involving AI characters in everyday life scenarios",
+            "platform_fit": "RedTube, where the integration of technology with human experiences is highly appreciated",
+            "duration_advice": "3-5 minutes for maximum engagement without sacrificing narrative depth",
+            "monetization": "Subscription model due to high production costs and expected audience willingness to pay"
+        },
+        {
+            "topic": "Mythical realism in short dramas",
+            "hotness": "A-class",
+            "audience": "25-34 year old females who enjoy fantasy elements blended with relatable human emotions and relationships",
+            "hook_style": "Introducing mythological creatures or gods into modern settings, creating a sense of wonder while addressing contemporary issues",
+            "platform_fit": "HermesLive due to its focus on high-quality content that blends fantasy with reality"
+        },
+        {
+            "topic": "Coupled narratives and character dynamics in short dramas",
+            "hotness": "B-class",
+            "audience": "Primarily male viewers who are drawn to strong, empowered female leads alongside their own relatable struggles or aspirants for professional success",
+            "hook_style": "Opening with a powerful statement about love and ambition that resonates on an emotional level from the start",
+            "platform_fit": "Heartstrings due to its emphasis on character-driven stories across various genres, including romance and sci-fi"
+        }
+    ],
+    "meta": {
+        "overall_trend": "In 2026 June, short dramas are gravitating towards AI integration for storytelling innovation, mythical realism with a focus on human emotions, and empowered relationships.",
+        "top3_topics": ["AI-generated content", "Mythical Realism in Short Dramas", "Coupled narratives"],
+        "advice": "Focus on high production values to stand out as an AI short drama while ensuring your story resonates emotionally with viewers and fits the platform's unique style.",
+        "risk_warning": "Relying too heavily on trends without a strong narrative or character development can lead to viewer disinterest, so balance is key."
+    }
+}

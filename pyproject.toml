@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "chinacrawl"
+version = "0.1.0"
+description = "ChinaCrawl - Chinese Web Search & Scraping Engine. 11-in-1 Firecrawl alternative for China."
+readme = "README.md"
+license = {text = "AGPL-3.0"}
+authors = [
+    {name = "Xiao Hei (XHLS)", email = "difcn2026@users.noreply.github.com"}
+]
+keywords = [
+    "web-scraping", "crawler", "search-engine", "chinese-search",
+    "firecrawl", "searxng", "llm-extraction", "monitoring"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "httpx>=0.24",
+    "trafilatura>=1.6",
+]
+
+[project.optional-dependencies]
+browser = ["playwright>=1.40"]
+llm = ["ollama>=0.1"]
+all = ["playwright>=1.40", "ollama>=0.1"]
+
+[project.urls]
+Homepage = "https://github.com/difcn2026/chinacrawl"
+Repository = "https://github.com/difcn2026/chinacrawl"
+Issues = "https://github.com/difcn2026/chinacrawl/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["chinacrawl"]
+
+[tool.setuptools.package-data]
+chinacrawl = ["*.py"]

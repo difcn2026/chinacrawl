@@ -1,0 +1,52 @@
+```json
+{
+    "trends": [
+        {
+            "topic": "IP系列化",
+            "hotness": "S-class",
+            "audience": "25-34岁女性为主，45岁以上人群付费意愿强",
+            "hook_style": "情感共鸣、双向救赎",
+            "platform_fit": "红果、河马、繁花三大平台",
+            "duration_advice": "10-15分钟",
+            "monetization": "IP联动、会员订阅",
+            "example_ref": "《云渺》系列"
+        },
+        {
+            "topic": "治愈救赎类题材",
+            "hotness": "A-class",
+            "audience": "追求情感共鸣的观众",
+            "hook_style": "角色困境中相互扶持",
+            "platform_fit": "各类短视频平台",
+            "duration_advice": "10-15分钟",
+            "monetization": "广告植入、付费会员",
+            "example_ref": "《家里家外》"
+        },
+        {
+            "topic": "爱情形态多样化",
+            "hotness": "B-class",
+            "audience": "年轻女性观众",
+            "hook_style": "先婚后爱等多元情感体验",
+            "platform_fit": "短视频平台、社交媒体",
+            "duration_advice": "5-10分钟",
+            "monetization": "广告合作、粉丝经济",
+            "example_ref": "《盛夏芬德拉》"
+        },
+        {
+            "topic": "AI漫剧",
+            "hotness": "B-class",
+            "audience": "追求创新体验的观众",
+            "hook_style": "AIGC技术赋能",
+            "platform_fit": "短视频平台、流媒体平台",
+            "duration_advice": "10-20分钟",
+            "monetization": "付费观看、广告合作",
+            "example_ref": "多部破亿播放的爆款作品"
+        }
+    ],
+    "meta": {
+        "overall_trend": "2026年短剧行业迈向规范化与精品化，内容消费偏好向情感共鸣和创新体验深化。",
+        "top3_topics": "IP系列化、治愈救赎类题材、爱情形态多样化",
+        "advice": "关注情感叙事和技术创新，深耕细分市场，提升制作质量。",
+        "risk_warning": "需注意内容质量不稳的风险"
+    }
+}
+```
