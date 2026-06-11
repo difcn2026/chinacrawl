@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chinacrawl"
+version = "0.2.1"
+description = "11-in-1 Chinese Web Search & Scraping Engine — open-source alternative to Firecrawl for the Chinese internet"
+readme = "README.md"
+license = {text = "AGPL-3.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Xiao Hei", email = "difcn2026@users.noreply.github.com"},
+]
+keywords = [
+    "crawler",
+    "scraper",
+    "web-scraping",
+    "china",
+    "douyin",
+    "pinduoduo",
+    "search-engine",
+    "firecrawl",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+]
+dependencies = [
+    "httpx>=0.24",
+    "trafilatura>=1.6",
+]
+
+[project.optional-dependencies]
+douyin = ["playwright>=1.40"]
+pinduoduo = ["playwright>=1.40"]
+browser = ["playwright>=1.40"]
+mcp = ["mcp>=1.0"]
+all = [
+    "playwright>=1.40",
+    "mcp>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/difcn2026/chinacrawl"
+Documentation = "https://difcn2026.github.io/chinacrawl/"
+Repository = "https://github.com/difcn2026/chinacrawl"
+Issues = "https://github.com/difcn2026/chinacrawl/issues"
+Gitee = "https://gitee.com/difcn2026/chinacrawl"
+
+[tool.setuptools]
+packages = ["chinacrawl", "chinacrawl.douyin", "chinacrawl.pinduoduo"]
+
+[tool.setuptools.package-dir]
+"chinacrawl" = "."

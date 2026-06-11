@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChinaCrawl v0.2.1 — Chinese Web Search &amp; Scraping Engine</title>
+<style>
+  /* ── Reset & Base ── */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --fg:#c9d1d9;--fg2:#8b949e;--accent:#58a6ff;--accent2:#3fb950;
+    --warn:#d2991d;--err:#f85149;--code-bg:#1c2128;
+    --radius:6px;--mono:"Cascadia Code","Fira Code","JetBrains Mono",Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;
+  }
+  html{scroll-behavior:smooth;font-size:15px;line-height:1.6}
+  body{font-family:var(--sans);background:var(--bg);color:var(--fg);min-height:100vh}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.12em .35em;border-radius:3px;color:var(--accent2)}
+  pre{font-family:var(--mono);font-size:.85em;background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);padding:1em 1.2em;overflow-x:auto;line-height:1.55}
+  pre code{background:none;padding:0;color:var(--fg)}
+  table{border-collapse:collapse;width:100%}
+  th,td{border:1px solid var(--border);padding:.55em .8em;text-align:left;font-size:.92em}
+  th{background:var(--bg3);font-weight:600}
+  hr{border:none;border-top:1px solid var(--border);margin:2em 0}
+
+  /* ── Layout ── */
+  .wrap{display:flex;max-width:1200px;margin:0 auto}
+  nav.sidebar{
+    width:250px;min-width:250px;position:sticky;top:0;height:100vh;
+    overflow-y:auto;padding:1.5em 1em;border-right:1px solid var(--border);
+    background:var(--bg2);font-size:.9em
+  }
+  nav.sidebar h2{font-size:1em;color:var(--fg2);text-transform:uppercase;letter-spacing:.05em;margin:1.2em 0 .5em}
+  nav.sidebar h2:first-child{margin-top:0}
+  nav.sidebar a{display:block;padding:.25em 0;color:var(--fg2);transition:color .15s}
+  nav.sidebar a:hover{color:var(--fg);text-decoration:none}
+  main.content{flex:1;padding:2em 2.5em 4em;min-width:0}
+  main.content h1{font-size:2em;margin-bottom:.3em;color:#fff}
+  main.content h2{font-size:1.35em;margin:2em 0 .6em;padding-bottom:.35em;border-bottom:1px solid var(--border);color:#e6edf3}
+  main.content h3{font-size:1.1em;margin:1.5em 0 .4em;color:var(--accent)}
+  main.content h4{font-size:1em;margin:1.2em 0 .3em;color:var(--fg)}
+  main.content p{margin:.5em 0}
+  main.content ul,main.content ol{margin:.5em 0 .5em 1.5em}
+  main.content li{margin:.25em 0}
+
+  /* ── Badge ── */
+  .badge{display:inline-block;font-size:.75em;font-weight:600;padding:.15em .5em;border-radius:3px;margin-left:.35em;vertical-align:middle}
+  .badge-core{background:var(--accent);color:#000}
+  .badge-dy{background:#ff0050;color:#fff}
+  .badge-pdd{background:#e02e24;color:#fff}
+  .badge-opt{background:var(--warn);color:#000}
+
+  /* ── Hero ── */
+  .hero{padding:1em 0 1.5em}
+  .hero .tagline{font-size:1.15em;color:var(--fg2);margin:.3em 0 1em}
+  .hero .btns{display:flex;gap:.7em;flex-wrap:wrap}
+  .hero .btn{
+    display:inline-block;padding:.55em 1.2em;border-radius:var(--radius);
+    font-weight:600;font-size:.9em;transition:opacity .15s
+  }
+  .hero .btn:hover{opacity:.85;text-decoration:none}
+  .btn-primary{background:var(--accent);color:#000}
+  .btn-secondary{background:var(--bg3);color:var(--fg);border:1px solid var(--border)}
+
+  /* ── Section cards ── */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1em;margin:.8em 0}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1em}
+  .card h4{margin-top:0;color:var(--accent)}
+  .card p{font-size:.92em;color:var(--fg2)}
+
+  /* ── API table ── */
+  .api-table td:first-child{white-space:nowrap;font-family:var(--mono);font-size:.85em}
+  .api-table td:nth-child(2){font-size:.9em;color:var(--fg2)}
+  .api-table tr:hover{background:var(--bg3)}
+
+  /* ── Footer ── */
+  footer{text-align:center;padding:1.5em;color:var(--fg2);font-size:.82em;border-top:1px solid var(--border);margin-top:3em}
+
+  @media(max-width:768px){
+    .wrap{flex-direction:column}
+    nav.sidebar{width:100%;min-width:0;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border)}
+    main.content{padding:1.5em}
+    .grid2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <h2>ChinaCrawl</h2>
+  <a href="#intro">项目简介</a>
+  <a href="#quickstart">快速开始</a>
+
+  <h2>Core API</h2>
+  <a href="#core-dataclasses">数据模型</a>
+  <a href="#core-scrape">抓取 (Scrape)</a>
+  <a href="#core-map">站点映射 (Map)</a>
+  <a href="#core-search">搜索 (Search)</a>
+  <a href="#core-monitor">监控 (Monitor)</a>
+  <a href="#core-crawl">爬取 (Crawl)</a>
+  <a href="#core-browser">浏览器 (Browser)</a>
+  <a href="#core-extract">结构化提取 (Extract)</a>
+  <a href="#core-config">配置常量</a>
+
+  <h2>Douyin Adapter</h2>
+  <a href="#dy-dataclasses">数据模型</a>
+  <a href="#dy-user">用户操作</a>
+  <a href="#dy-video">视频操作</a>
+  <a href="#dy-search">搜索</a>
+  <a href="#dy-monitor">监控</a>
+  <a href="#dy-session">会话管理</a>
+
+  <h2>Pinduoduo Adapter</h2>
+  <a href="#pdd-dataclasses">数据模型</a>
+  <a href="#pdd-product">商品操作</a>
+  <a href="#pdd-shop">店铺操作</a>
+  <a href="#pdd-category">分类 &amp; 促销</a>
+  <a href="#pdd-monitor">监控</a>
+  <a href="#pdd-session">会话管理</a>
+
+  <h2>部署</h2>
+  <a href="#deploy">部署指南</a>
+  <a href="#links">相关链接</a>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="content">
+
+<!-- ─── Hero ─── -->
+<div class="hero">
+  <h1>🏮 ChinaCrawl <span style="font-weight:400;color:var(--fg2)">v0.2.1</span></h1>
+  <p class="tagline">
+    面向中文互联网的 11 合 1 开源搜索引擎 &middot;
+    <strong>Firecrawl 替代方案</strong> &middot;
+    零外部付费依赖 &middot; AGPLv3
+  </p>
+  <div class="btns">
+    <a class="btn btn-primary" href="#quickstart">快速开始</a>
+    <a class="btn btn-secondary" href="#core-scrape">API 参考</a>
+    <a class="btn btn-secondary" href="https://github.com/yourorg/chinacrawl" target="_blank">GitHub</a>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     1. INTRO
+     ════════════════════════════════════ -->
+<h2 id="intro">项目简介</h2>
+<p>
+  <strong>ChinaCrawl</strong> 是面向中国互联网的开源搜索引擎与数据采集引擎。
+  对标 <a href="https://firecrawl.dev" target="_blank">Firecrawl</a>，
+  但专为中文网络生态优化 —— 内置对 <strong>抖音 (Douyin)</strong> 和
+  <strong>拼多多 (Pinduoduo)</strong> 等平台的深度适配。
+</p>
+
+<div class="grid2">
+  <div class="card">
+    <h4>🔍 中文优先</h4>
+    <p>SearXNG + Mojeek 双引擎中文搜索，原生支持百度/搜狗等中文搜索引擎 via SearXNG 配置。</p>
+  </div>
+  <div class="card">
+    <h4>💰 零付费依赖</h4>
+    <p>不依赖任何外部付费 API。搜索用自建 SearXNG 实例，LLM 提取用本地 Ollama，全部自托管。</p>
+  </div>
+  <div class="card">
+    <h4>🛡️ 平台对抗</h4>
+    <p>抖音 &amp; 拼多多适配器内置反检测 (anti-detect) 引擎，绕过风控，稳定采集。</p>
+  </div>
+  <div class="card">
+    <h4>📦 11 合 1</h4>
+    <p>Scrape / Map / Search / Monitor / Monitor-AI / Crawl / Download / Interact / Extract / Extract-LLM / Session。</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     2. QUICK START
+     ════════════════════════════════════ -->
+<h2 id="quickstart">快速开始</h2>
+
+<h3>安装</h3>
+<pre><code>pip install chinacrawl</code></pre>
+<p>依赖: <code>httpx</code>, <code>trafilatura</code>。可选: <code>playwright</code> (浏览器交互 &amp; 平台适配器)。</p>
+
+<h3>基础用法</h3>
+<pre><code>from chinacrawl import scrape, search_web
+
+# 抓取单页
+result = scrape("https://example.com")
+print(result.title, result.content[:200])
+
+# 搜索中文内容
+results = search_web("Python 爬虫教程", max_results=10)
+for r in results:
+    print(r.title, r.url)
+
+# 批量抓取
+from chinacrawl import scrape_many
+for r in scrape_many(["https://a.com", "https://b.com"]):
+    print(r.summary)</code></pre>
+
+<h3>抖音适配器</h3>
+<pre><code>from chinacrawl import douyin_login, douyin_user_posts
+
+douyin_login()  # 扫码登录
+for post in douyin_user_posts("user_sec_uid"):
+    print(post.desc, post.digg_count)</code></pre>
+
+<h3>拼多多适配器</h3>
+<pre><code>from chinacrawl import pinduoduo_product_search, pinduoduo_product_detail
+
+for product in pinduoduo_product_search("蓝牙耳机", max_results=20):
+    print(product.title, product.price)
+    detail = pinduoduo_product_detail(product.goods_id)
+    print(detail.description)</code></pre>
+
+<!-- ════════════════════════════════════
+     3. CORE API
+     ════════════════════════════════════ -->
+<h2>Core API 参考 <span class="badge badge-core">核心</span></h2>
+
+<!-- ─── 3.0 Data Classes ─── -->
+<h3 id="core-dataclasses">数据模型</h3>
+
+<table class="api-table">
+<tr><th>类</th><th>字段</th><th>说明</th></tr>
+<tr><td><code>ScrapeResult</code></td>
+  <td>url, engine, title, content, content_type, elapsed_ms, error, word_count</td>
+  <td>单页抓取结果。属性: <code>.ok</code>, <code>.summary</code></td></tr>
+<tr><td><code>PageLink</code></td>
+  <td>url, text, internal</td>
+  <td>站点内链接</td></tr>
+<tr><td><code>SearchResult</code></td>
+  <td>title, url, snippet</td>
+  <td>搜索结果条目</td></tr>
+<tr><td><code>MonitorResult</code></td>
+  <td>url, changed, prev_hash, curr_hash, prev_checked, curr_checked, word_count, error</td>
+  <td>页面变更检测结果</td></tr>
+<tr><td><code>MonitorAIResult</code></td>
+  <td>url, changed, noise_stripped, prev_hash, curr_hash, prev_checked, curr_checked, noise_removed, error</td>
+  <td>AI 降噪监控结果</td></tr>
+<tr><td><code>CrawlResult</code></td>
+  <td>url, pages, total_pages, ok_pages, elapsed_ms, error</td>
+  <td>递归爬取结果</td></tr>
+<tr><td><code>ExtractResult</code></td>
+  <td>url, data, ok, elapsed_ms, error</td>
+  <td>结构化提取结果</td></tr>
+</table>
+
+<!-- ─── 3.1 Scrape ─── -->
+<h3 id="core-scrape">抓取</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th><th>说明</th></tr>
+<tr><td><code>scrape</code></td>
+  <td>(url, prefer="jina", fallback=True, **kw) → ScrapeResult</td>
+  <td>智能抓取：优先 Jina AI，失败回退 trafilatura</td></tr>
+<tr><td><code>scrape_jina</code></td>
+  <td>(url, timeout=TIMEOUT, proxy=PROXY) → ScrapeResult</td>
+  <td>通过 r.jina.ai 抓取为 Markdown</td></tr>
+<tr><td><code>scrape_trafilatura</code></td>
+  <td>(url, timeout=TIMEOUT, proxy=PROXY) → ScrapeResult</td>
+  <td>本地 trafilatura 提取正文</td></tr>
+<tr><td><code>scrape_many</code></td>
+  <td>(urls, engine="jina", delay=0.5) → Generator</td>
+  <td>批量抓取，逐条 yield</td></tr>
+</table>
+
+<pre><code>from chinacrawl import scrape, scrape_jina, scrape_trafilatura, scrape_many
+
+# 默认智能抓取
+r = scrape("https://httpbin.org/html")
+print(r.title, r.word_count)
+
+# 指定引擎
+r = scrape_trafilatura("https://httpbin.org/html")
+
+# 批量
+for r in scrape_many(["https://a.com", "https://b.com"], delay=1.0):
+    if r.ok:
+        print(r.summary)</code></pre>
+
+<!-- ─── 3.2 Map ─── -->
+<h3 id="core-map">站点映射</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th><th>说明</th></tr>
+<tr><td><code>map_site</code></td>
+  <td>(url, timeout=TIMEOUT, proxy=PROXY) → list[PageLink]</td>
+  <td>发现站点所有链接，标注 internal/external</td></tr>
+</table>
+
+<pre><code>from chinacrawl import map_site
+
+links = map_site("https://example.com")
+for link in links:
+    kind = "内链" if link.internal else "外链"
+    print(f"[{kind}] {link.url} — {link.text}")</code></pre>
+
+<!-- ─── 3.3 Search ─── -->
+<h3 id="core-search">搜索</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th><th>说明</th></tr>
+<tr><td><code>search_web</code></td>
+  <td>(query, max_results=10, timeout=TIMEOUT, proxy=PROXY) → list[SearchResult]</td>
+  <td>中文搜索：Mojeek 优先 → SearXNG 回退</td></tr>
+<tr><td><code>search_and_scrape</code></td>
+  <td>(query, max_results=5, engine="jina", delay=0.5, **kw) → Generator</td>
+  <td>搜索 + 自动抓取搜索结果页</td></tr>
+</table>
+
+<pre><code>from chinacrawl import search_web, search_and_scrape
+
+# 纯搜索
+results = search_web("Rust 异步运行时对比", max_results=15)
+for r in results:
+    print(r.title, r.url)
+
+# 搜索并抓取正文
+for r in search_and_scrape("Python asyncio 最佳实践", max_results=3):
+    print(r.title)
+    print(r.content[:300])</code></pre>
+
+<!-- ─── 3.4 Monitor ─── -->
+<h3 id="core-monitor">监控</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th><th>说明</th></tr>
+<tr><td><code>monitor_page</code></td>
+  <td>(url, engine="jina", label=None, timeout=TIMEOUT, proxy=PROXY) → MonitorResult</td>
+  <td>Hash 变更检测，缓存到 monitor_cache/</td></tr>
+<tr><td><code>monitor_page_ai</code></td>
+  <td>(url, engine="jina", label=None, timeout=TIMEOUT, proxy=PROXY) → MonitorAIResult</td>
+  <td>AI 降噪监控：剔除时间戳/广告等噪音后再对比</td></tr>
+</table>
+
+<pre><code>from chinacrawl import monitor_page, monitor_page_ai
+
+# 首次运行 → changed=False (建立基线)
+r = monitor_page("https://example.com/news", label="example-news")
+print(r.changed, r.prev_hash, r.curr_hash)
+
+# 页面更新后再次运行 → changed=True
+
+# AI 降噪版本（剔除时间戳等动态内容）
+r = monitor_page_ai("https://example.com/news")
+print(r.changed, r.noise_removed)</code></pre>
+
+<!-- ─── 3.5 Crawl ─── -->
+<h3 id="core-crawl">爬取</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th><th>说明</th></tr>
+<tr><td><code>crawl_site</code></td>
+  <td>(url, max_depth=3, max_pages=100, path_prefix=None, ...) → CrawlResult</td>
+  <td>深度限制递归爬取，默认 trafilatura 提取</td></tr>
+<tr><td><code>download_site</code></td>
+  <td>(url, output_dir, max_pages=50, engine="jina", delay=0.5, **kw) → CrawlResult</td>
+  <td>Map + Scrape → 保存 Markdown 到磁盘</td></tr>
+</table>
+
+<pre><code>from chinacrawl import crawl_site, download_site
+
+# 递归爬取
+result = crawl_site("https://docs.example.com", max_depth=2, max_pages=50)
+print(f"抓取 {result.ok_pages}/{result.total_pages} 页，耗时 {result.elapsed_ms:.0f}ms")
+
+# 下载整站到本地
+result = download_site("https://docs.example.com", output_dir="./example_docs/")
+print(f"已保存到 ./example_docs/")</code></pre>
+
+<!-- ─── 3.6 Browser ─── -->
+<h3 id="core-browser">浏览器交互</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th><th>说明</th></tr>
+<tr><td><code>browser_interact</code></td>
+  <td>(url, actions, timeout=TIMEOUT, proxy=PROXY, headless=True) → dict</td>
+  <td>Playwright 浏览器自动化：点击/输入/截图/等待</td></tr>
+<tr><td><code>browser_session_save</code></td>
+  <td>(name, url="", timeout=TIMEOUT, proxy=PROXY, headless=True) → dict</td>
+  <td>保存浏览器登录态</td></tr>
+<tr><td><code>browser_session_load</code></td>
+  <td>(name, timeout=TIMEOUT, proxy=PROXY, headless=True) → dict</td>
+  <td>加载已保存的登录态</td></tr>
+<tr><td><code>browser_session_close</code></td>
+  <td>(session_result) → None</td>
+  <td>关闭浏览器会话</td></tr>
+</table>
+
+<pre><code>from chinacrawl import browser_interact
+
+result = browser_interact("https://example.com/login", actions=[
+    {"type": "fill",   "selector": "#username", "value": "admin"},
+    {"type": "fill",   "selector": "#password", "value": "pass123"},
+    {"type": "click",  "selector": "button[type=submit]"},
+    {"type": "wait",   "ms": 2000},
+    {"type": "content"},
+    {"type": "screenshot", "path": "./login_result.png"},
+])
+print(result["content"][:500])</code></pre>
+
+<!-- ─── 3.7 Extract ─── -->
+<h3 id="core-extract">结构化提取</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th><th>说明</th></tr>
+<tr><td><code>extract_structured</code></td>
+  <td>(url, schema, timeout=TIMEOUT, proxy=PROXY) → ExtractResult</td>
+  <td>基于 schema 字典的 CSS 选择器提取</td></tr>
+<tr><td><code>extract_llm</code></td>
+  <td>(url, schema, model="qwen2.5:7b", content=None, timeout=TIMEOUT, proxy=PROXY) → ExtractResult</td>
+  <td>LLM 语义提取 (需本地 Ollama)</td></tr>
+</table>
+
+<pre><code>from chinacrawl import extract_structured, extract_llm
+
+# CSS 选择器提取
+schema = {
+    "title":     "h1",
+    "price":     ".price-tag",
+    "rating":    ".star-rating | attr:data-score",
+    "reviews":   ".review-item | [text]",
+}
+result = extract_structured("https://example.com/product", schema)
+print(result.data)  # {"title": "...", "price": "...", ...}
+
+# LLM 语义提取（需要 Ollama 运行中）
+schema = {
+    "product_name": "string",
+    "price": "number",
+    "pros": ["string"],
+    "cons": ["string"],
+}
+result = extract_llm("https://example.com/review", schema, model="qwen2.5:7b")
+print(result.data)</code></pre>
+
+<!-- ─── 3.8 Config ─── -->
+<h3 id="core-config">配置常量</h3>
+
+<table class="api-table">
+<tr><th>常量</th><th>默认值</th><th>说明</th></tr>
+<tr><td><code>PROXY</code></td><td><code>"http://127.0.0.1:7654"</code></td><td>HTTP 代理地址</td></tr>
+<tr><td><code>TIMEOUT</code></td><td><code>30</code></td><td>请求超时 (秒)</td></tr>
+<tr><td><code>SEARXNG_INSTANCES</code></td><td><code>["http://47.236.24.76:9999"]</code></td><td>SearXNG 实例列表</td></tr>
+<tr><td><code>CAPABILITIES</code></td><td>dict (12 项能力)</td><td>能力注册表，含 func/fc 映射</td></tr>
+<tr><td><code>DOUYIN_AVAILABLE</code></td><td><code>bool</code></td><td>抖音适配器是否可用</td></tr>
+<tr><td><code>PINDUODUO_AVAILABLE</code></td><td><code>bool</code></td><td>拼多多适配器是否可用</td></tr>
+</table>
+
+<!-- ════════════════════════════════════
+     4. DOUYIN API
+     ════════════════════════════════════ -->
+<h2>Douyin Adapter API <span class="badge badge-dy">抖音</span></h2>
+
+<!-- ─── 4.1 Data Classes ─── -->
+<h3 id="dy-dataclasses">数据模型</h3>
+
+<table class="api-table">
+<tr><th>类</th><th>说明</th></tr>
+<tr><td><code>UserInfo</code></td><td>用户信息：昵称、头像、粉丝数、获赞数、sec_uid</td></tr>
+<tr><td><code>AwemeInfo</code></td><td>视频信息：描述、点赞、评论、分享、播放数、下载地址</td></tr>
+<tr><td><code>CommentInfo</code></td><td>评论信息：内容、点赞数、回复数、用户</td></tr>
+<tr><td><code>SearchResult</code></td><td>搜索结果：类型、标题、URL、附加数据</td></tr>
+</table>
+
+<!-- ─── 4.2 User ─── -->
+<h3 id="dy-user">用户操作</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>user_info</code></td><td>(sec_uid: str) → UserInfo</td></tr>
+<tr><td><code>user_posts</code></td><td>(sec_uid: str, max_pages: int = 0, ...) → Generator[AwemeInfo]</td></tr>
+<tr><td><code>user_likes</code></td><td>(sec_uid: str, max_pages: int = 0) → Generator[AwemeInfo]</td></tr>
+</table>
+
+<pre><code>from chinacrawl import douyin_user_info, douyin_user_posts, douyin_user_likes
+
+user = douyin_user_info("MS4wLjABAAAA...")  # sec_uid
+print(f"{user.nickname} — {user.follower_count} 粉丝")
+
+for post in douyin_user_posts("MS4wLjABAAAA...", max_pages=3):
+    print(post.desc, post.digg_count)</code></pre>
+
+<!-- ─── 4.3 Video ─── -->
+<h3 id="dy-video">视频操作</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>video_info</code></td><td>(aweme_id: str) → AwemeInfo</td></tr>
+<tr><td><code>video_download</code></td><td>(aweme_id: str, output_dir="./downloads/", ...) → str</td></tr>
+<tr><td><code>video_comments</code></td><td>(aweme_id: str, max_pages: int = 5) → Generator[CommentInfo]</td></tr>
+</table>
+
+<pre><code>from chinacrawl import douyin_video_info, douyin_video_download, douyin_video_comments
+
+info = douyin_video_info("7123456789012345678")
+path = douyin_video_download("7123456789012345678", output_dir="./videos/")
+print(f"已下载: {path}")
+
+for comment in douyin_video_comments("7123456789012345678"):
+    print(f"{comment.user_name}: {comment.text}")</code></pre>
+
+<!-- ─── 4.4 Search ─── -->
+<h3 id="dy-search">搜索</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>search</code></td><td>(keyword: str, max_results: int = 20) → List[SearchResult]</td></tr>
+<tr><td><code>search_user</code></td><td>(keyword: str, max_results: int = 10) → List[UserInfo]</td></tr>
+<tr><td><code>search_hashtag</code></td><td>(keyword: str, max_results: int = 10) → List[dict]</td></tr>
+</table>
+
+<pre><code>from chinacrawl import douyin_search, douyin_search_user, douyin_search_hashtag
+
+# 搜索视频
+for r in douyin_search("猫咪", max_results=20):
+    print(r.title, r.url)
+
+# 搜索用户
+for u in douyin_search_user("美食博主"):
+    print(u.nickname, u.follower_count)
+
+# 搜索话题
+for h in douyin_search_hashtag("旅行"):
+    print(h["title"], h["view_count"])</code></pre>
+
+<!-- ─── 4.5 Monitor ─── -->
+<h3 id="dy-monitor">监控</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>monitor_user</code></td><td>(sec_uid: str, label: str = "") → dict</td></tr>
+<tr><td><code>monitor_hashtag</code></td><td>(keyword: str, label: str = "") → dict</td></tr>
+</table>
+
+<!-- ─── 4.6 Session ─── -->
+<h3 id="dy-session">会话管理</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>login</code></td><td>(method: str = "qr", cookie_file: Optional[str] = None) → dict</td></tr>
+<tr><td><code>save_session</code></td><td>(cookie_file: str) → bool</td></tr>
+<tr><td><code>load_session</code></td><td>(cookie_file: str) → bool</td></tr>
+<tr><td><code>check_session</code></td><td>() → bool</td></tr>
+</table>
+
+<pre><code>from chinacrawl import douyin_login, douyin_save_session, douyin_load_session
+
+douyin_login()                           # 扫码登录
+douyin_save_session("./douyin_cookies.json")  # 保存登录态
+# 下次启动
+douyin_load_session("./douyin_cookies.json")  # 恢复登录态</code></pre>
+
+<!-- ════════════════════════════════════
+     5. PINDUODUO API
+     ════════════════════════════════════ -->
+<h2>Pinduoduo Adapter API <span class="badge badge-pdd">拼多多</span></h2>
+
+<!-- ─── 5.1 Data Classes ─── -->
+<h3 id="pdd-dataclasses">数据模型</h3>
+
+<table class="api-table">
+<tr><th>类</th><th>说明</th></tr>
+<tr><td><code>ProductInfo</code></td><td>商品详情：标题、价格、销量、描述、图片、规格</td></tr>
+<tr><td><code>ShopInfo</code></td><td>店铺信息：名称、评分、销量、关注数</td></tr>
+<tr><td><code>ReviewInfo</code></td><td>评价信息：内容、评分、图片、用户</td></tr>
+<tr><td><code>SearchResult</code></td><td>搜索结果项：商品标题、价格、销量、goods_id</td></tr>
+</table>
+
+<!-- ─── 5.2 Product ─── -->
+<h3 id="pdd-product">商品操作</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>product_search</code></td><td>(keyword: str, max_results: int = 20, ...) → SearchResult 列表</td></tr>
+<tr><td><code>product_detail</code></td><td>(goods_id: str, cookie_file: Optional[str] = None) → Optional[ProductInfo]</td></tr>
+<tr><td><code>product_reviews</code></td><td>(goods_id: str, max_reviews: int = 50, ...) → ReviewInfo 列表</td></tr>
+<tr><td><code>product_download</code></td><td>(goods_id: str, output_dir="./downloads/", ...) → dict</td></tr>
+</table>
+
+<pre><code>from chinacrawl import (
+    pinduoduo_product_search, pinduoduo_product_detail,
+    pinduoduo_product_reviews, pinduoduo_product_download
+)
+
+# 搜索商品
+for p in pinduoduo_product_search("蓝牙耳机", max_results=20):
+    print(f"{p.title} — ¥{p.price} — 销量 {p.sales}")
+
+# 商品详情
+detail = pinduoduo_product_detail("12345678")
+print(detail.title, detail.description, detail.specs)
+
+# 商品评价
+for r in pinduoduo_product_reviews("12345678", max_reviews=50):
+    print(r.rating, r.content)
+
+# 下载商品信息
+info = pinduoduo_product_download("12345678", output_dir="./pdd_products/")</code></pre>
+
+<!-- ─── 5.3 Shop ─── -->
+<h3 id="pdd-shop">店铺操作</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>shop_info</code></td><td>(mall_id: str, cookie_file: Optional[str] = None) → Optional[ShopInfo]</td></tr>
+<tr><td><code>mall_products</code></td><td>(mall_id: str, max_results: int = 50, ...) → ProductInfo 列表</td></tr>
+</table>
+
+<pre><code>from chinacrawl import pinduoduo_shop_info, pinduoduo_mall_products
+
+shop = pinduoduo_shop_info("mall_12345")
+print(f"{shop.name} — 评分 {shop.score} — {shop.followers} 关注")
+
+for p in pinduoduo_mall_products("mall_12345", max_results=50):
+    print(p.title, p.price)</code></pre>
+
+<!-- ─── 5.4 Category ─── -->
+<h3 id="pdd-category">分类 &amp; 促销</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>category_list</code></td><td>() → list[dict]</td></tr>
+<tr><td><code>flash_sale</code></td><td>(max_results: int = 30, ...) → ProductInfo 列表</td></tr>
+</table>
+
+<pre><code>from chinacrawl import pinduoduo_category_list, pinduoduo_flash_sale
+
+for cat in pinduoduo_category_list():
+    print(cat["name"], cat["id"])
+
+for p in pinduoduo_flash_sale(max_results=30):
+    print(f"⚡ {p.title} — ¥{p.price} (原价 ¥{p.original_price})")</code></pre>
+
+<!-- ─── 5.5 Monitor ─── -->
+<h3 id="pdd-monitor">监控</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>monitor_product</code></td><td>(goods_id: str, label: str = "") → dict</td></tr>
+<tr><td><code>monitor_shop</code></td><td>(mall_id: str, label: str = "") → dict</td></tr>
+</table>
+
+<!-- ─── 5.6 Session ─── -->
+<h3 id="pdd-session">会话管理</h3>
+
+<table class="api-table">
+<tr><th>函数</th><th>签名</th></tr>
+<tr><td><code>login</code></td><td>(method: str = "qr", cookie_file: Optional[str] = None) → dict</td></tr>
+<tr><td><code>save_session</code></td><td>(cookie_file: str) → bool</td></tr>
+<tr><td><code>load_session</code></td><td>(cookie_file: str) → bool</td></tr>
+<tr><td><code>check_session</code></td><td>() → bool</td></tr>
+</table>
+
+<pre><code>from chinacrawl import pinduoduo_login, pinduoduo_save_session
+
+pinduoduo_login()                          # 扫码登录
+pinduoduo_save_session("./pdd_cookies.json")</code></pre>
+
+<!-- ════════════════════════════════════
+     6. DEPLOY
+     ════════════════════════════════════ -->
+<h2 id="deploy">部署指南</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h4>🏠 本地开发</h4>
+    <pre style="background:var(--bg);border:none;padding:.8em 0"><code>pip install chinacrawl
+# 可选：Playwright 浏览器
+playwright install chromium</code></pre>
+    <p style="margin:0">直接导入使用，无需额外配置。</p>
+  </div>
+  <div class="card">
+    <h4>🖥️ 生产部署</h4>
+    <pre style="background:var(--bg);border:none;padding:.8em 0"><code># 1. 自建 SearXNG 实例 (Docker)
+docker run -d -p 8888:8080 searxng/searxng
+
+# 2. 配置代理 (推荐)
+export HTTP_PROXY=http://proxy:7654
+
+# 3. 安装 Ollama (可选，用于 extract_llm)
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull qwen2.5:7b</code></pre>
+  </div>
+  <div class="card">
+    <h4>☁️ 平台适配器</h4>
+    <pre style="background:var(--bg);border:none;padding:.8em 0"><code># 抖音 & 拼多多需要 Playwright
+pip install playwright
+playwright install chromium
+
+# 登录一次保存 cookie
+python -c "
+from chinacrawl import douyin_login, douyin_save_session
+douyin_login()
+douyin_save_session('./dy_cookies.json')
+"</code></pre>
+  </div>
+  <div class="card">
+    <h4>📦 Docker 镜像</h4>
+    <pre style="background:var(--bg);border:none;padding:.8em 0"><code>FROM python:3.12-slim
+RUN pip install chinacrawl playwright
+RUN playwright install --with-deps chromium
+COPY . /app
+WORKDIR /app
+CMD ["python", "-m", "chinacrawl"]</code></pre>
+  </div>
+</div>
+
+<h3>环境变量</h3>
+<table class="api-table">
+<tr><th>变量</th><th>默认值</th><th>说明</th></tr>
+<tr><td><code>CHINACRAWL_PROXY</code></td><td><code>http://127.0.0.1:7654</code></td><td>HTTP 代理</td></tr>
+<tr><td><code>CHINACRAWL_TIMEOUT</code></td><td><code>30</code></td><td>请求超时(秒)</td></tr>
+<tr><td><code>CHINACRAWL_SEARXNG</code></td><td>内置实例</td><td>逗号分隔的 SearXNG URL</td></tr>
+<tr><td><code>OLLAMA_HOST</code></td><td><code>http://127.0.0.1:11434</code></td><td>Ollama 服务地址</td></tr>
+</table>
+
+<!-- ════════════════════════════════════
+     7. LINKS
+     ════════════════════════════════════ -->
+<h2 id="links">相关链接</h2>
+
+<table class="api-table">
+<tr><th>资源</th><th>链接</th></tr>
+<tr><td>GitHub</td><td><a href="https://github.com/yourorg/chinacrawl" target="_blank">github.com/yourorg/chinacrawl</a></td></tr>
+<tr><td>PyPI</td><td><a href="https://pypi.org/project/chinacrawl/" target="_blank">pypi.org/project/chinacrawl</a></td></tr>
+<tr><td>Firecrawl (对标)</td><td><a href="https://firecrawl.dev" target="_blank">firecrawl.dev</a></td></tr>
+<tr><td>SearXNG</td><td><a href="https://docs.searxng.org" target="_blank">docs.searxng.org</a></td></tr>
+<tr><td>Ollama</td><td><a href="https://ollama.com" target="_blank">ollama.com</a></td></tr>
+<tr><td>Playwright</td><td><a href="https://playwright.dev/python" target="_blank">playwright.dev/python</a></td></tr>
+<tr><td>许可协议</td><td>AGPL v3</td></tr>
+</table>
+
+<!-- Footer -->
+<footer>
+  ChinaCrawl v0.2.1 &middot; AGPLv3 &middot; Built by 小黑 (Xiao Hei) &middot; 2026
+</footer>
+
+</main>
+</div>
+</body>
+</html>
