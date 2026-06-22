@@ -13,6 +13,12 @@ Douyin (TikTok China) adapter (v0.2.0):
     douyin_login()  # QR code login
     for post in douyin_user_posts("user_sec_uid"):
         print(post.desc, post.digg_count)
+
+Multi-platform engines (v0.3.0):
+    from chinacrawl.engines import JDEngine, TaobaoEngine, XHSEngine, registry
+    jd = JDEngine()
+    results = jd.search("机械键盘")
+    print(registry.list_all())  # ['jd', 'taobao', 'xhs', 'douyin', 'pinduoduo']
 """
 
 from .scraper import (
@@ -56,7 +62,38 @@ try:
 except ImportError:
     pass
 
-__version__ = "0.2.0"
+
+# ── Multi-platform Engines (v0.3.0) ─────────────────────────
+ENGINES_AVAILABLE = False
+try:
+    from .engines import (
+        BaseEngine, EngineProduct, EngineSearchResult, EngineRegistry, registry,
+        JDEngine, TaobaoEngine, XHSEngine, list_engines, get_engine,
+    )
+    ENGINES_AVAILABLE = True
+except ImportError:
+    pass
+
+
+# ── Anti-Detection & Stealth (v0.3.0) ───────────────────────
+STEALTH_AVAILABLE = False
+try:
+    from .stealth import StealthBrowser, apply_stealth_patches
+    STEALTH_AVAILABLE = True
+except ImportError:
+    pass
+
+
+# ── CAPTCHA Solver (v0.3.0) ─────────────────────────────────
+CAPTCHA_AVAILABLE = False
+try:
+    from .captcha import CaptchaSolver, solve_captcha
+    CAPTCHA_AVAILABLE = True
+except ImportError:
+    pass
+
+
+__version__ = "0.3.0"
 __all__ = [
     "ScrapeResult", "PageLink", "SearchResult", "MonitorResult",
     "MonitorAIResult", "CrawlResult", "ExtractResult",
@@ -68,6 +105,7 @@ __all__ = [
     "browser_session_save", "browser_session_load", "browser_session_close",
     "extract_structured", "extract_llm",
     "CAPABILITIES", "SEARXNG_INSTANCES", "PROXY", "TIMEOUT",
+    # Douyin
     "DOUYIN_AVAILABLE",
     "douyin_login", "douyin_user_posts", "douyin_user_info",
     "douyin_video_info", "douyin_video_download", "douyin_video_comments",
@@ -75,4 +113,13 @@ __all__ = [
     "douyin_monitor_user", "douyin_monitor_hashtag",
     "douyin_save_session", "douyin_load_session", "douyin_check_session",
     "DouyinUserInfo", "DouyinAwemeInfo", "DouyinCommentInfo",
+    # Engines v0.3.0
+    "ENGINES_AVAILABLE",
+    "JDEngine", "TaobaoEngine", "XHSEngine",
+    "BaseEngine", "EngineProduct", "EngineSearchResult", "EngineRegistry", "registry",
+    "list_engines", "get_engine",
+    # Stealth & CAPTCHA v0.3.0
+    "STEALTH_AVAILABLE", "CAPTCHA_AVAILABLE",
+    "StealthBrowser", "apply_stealth_patches",
+    "CaptchaSolver", "solve_captcha",
 ]
