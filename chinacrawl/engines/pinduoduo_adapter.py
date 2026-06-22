@@ -1,4 +1,4 @@
-"""Pinduoduo (拼多�? Engine Adapter �?wraps chinacrawl.pinduoduo into BaseSiteEngine.
+"""Pinduoduo (拼多多) Engine Adapter — wraps chinacrawl.pinduoduo into BaseSiteEngine.
 
 Delegates to the existing pinduoduo/ scraper module. Falls back to skeleton
 implementations when the pinduoduo module is unavailable.
@@ -21,7 +21,7 @@ except ImportError:
 
 class PinduoduoEngine(BaseSiteEngine):
     name = "pinduoduo"
-    display_name = "拼多�?Pinduoduo"
+    display_name = "拼多多 Pinduoduo"
     homepage = "https://www.pinduoduo.com"
     requires_playwright = True
     requires_login = True
