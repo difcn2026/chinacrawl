@@ -1,0 +1,102 @@
+# ?????? ? ????
+
+## ??
+
+```python
+from chinacrawl.pinduoduo import (
+    # ??
+    product_search,      # SSR?? (???cookie)
+    product_feed,        # ??? (???)
+
+    # ?? (????)
+    product_detail,      # API?? (~2s)
+    product_detail_ssr,  # SSR?? ????+SKU (~5s)
+    product_detail_full, # API+SSR?? ???? (~7s)
+
+    # ?? & ??
+    product_reviews,     # ???? (???fetch)
+    mall_products,       # ??????
+    shop_info,           # ????
+
+    # ?????? ?
+    BrandAnalyzer,       # ????????
+    generate_report,     # ????????
+
+    # ????
+    ProductInfo, SkuInfo, ShopInfo, ReviewInfo, BrandReport,
+)
+```
+
+## ????
+
+```python
+# 1) ????
+results = product_search("????", max_results=20, cookie_file=".cache/sessions/pdd.json")
+for p in results:
+    print(p.title, p.price)
+
+# 2) ???? (?SKU)
+p = product_detail_ssr("987654321", cookie_file=".cache/sessions/pdd.json")
+for sku in p.skus:
+    print(f"  {sku.spec_text}: ???{sku.group_price} ??{sku.quantity}")
+
+# 3) ???? (API+SSR??)
+p = product_detail_full("987654321", cookie_file=".cache/sessions/pdd.json")
+
+# 4) ????
+reviews = product_reviews("987654321", max_reviews=100, cookie_file=".cache/sessions/pdd.json")
+for r in reviews:
+    print(f"  [{r.rating}?] {r.user_name}: {r.text[:50]}")
+
+# 5) ????
+products = mall_products("12345", max_results=200, cookie_file=".cache/sessions/pdd.json")
+
+# 6) ???????? ?
+from chinacrawl.pinduoduo import BrandAnalyzer, generate_report
+
+analyzer = BrandAnalyzer(cookie_file=".cache/sessions/pdd.json")
+
+# ????????????????
+report = analyzer.analyze(brand="??", industry="???")
+print(f"???: {report.visibility}")   # high / low / none
+print(f"????: {report.search_rank}")  # -1 = ???
+print(f"????: {report.competitor_count}")
+print(f"????: {report.price_range}")
+
+# ???? Markdown ??
+print(report.to_markdown())
+
+# ???????
+generate_report(brand="???", industry="???",
+                cookie_file=".cache/sessions/pdd.json")
+```
+
+## SKU ????
+
+```python
+p = product_detail_ssr("123456789")
+# p.skus[0] = SkuInfo(
+#     sku_id="xxx",
+#     spec_text="??:??;??:M",
+#     normal_price=99.90,   # ???(?)
+#     group_price=89.90,    # ???(?)
+#     quantity=5000,
+#     is_default=True,
+# )
+```
+
+## ??????
+
+```python
+report = analyzer.analyze(brand="??", industry="???")
+
+# report ??:
+# .visibility       "none" | "low" | "high"
+# .search_rank      ???? (-1 = ???)
+# .search_total     ??????
+# .price_range      ???? "?540 - ?2550"
+# .avg_price        ??
+# .competitors      ???? [{title, price, sales}]
+# .recommendations  ??????
+# .to_markdown()    ?? Markdown ????
+```

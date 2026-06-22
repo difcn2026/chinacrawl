@@ -19,6 +19,14 @@ Multi-platform engines (v0.3.0):
     jd = JDEngine()
     results = jd.search("机械键盘")
     print(registry.list_all())  # ['jd', 'taobao', 'xhs', 'douyin', 'pinduoduo']
+
+Deep Pinduoduo (v0.3.1):
+    from chinacrawl.engines.pinduoduo import product_search, product_feed, BrandAnalyzer
+    for product in product_feed(max_sn=20):
+        print(product.title, product.price)
+
+Market intelligence (v0.3.1):
+    from chinacrawl.market import scan_market, generate_report
 """
 
 from .scraper import (
@@ -69,6 +77,7 @@ try:
     from .engines import (
         BaseEngine, EngineProduct, EngineSearchResult, EngineRegistry, registry,
         JDEngine, TaobaoEngine, XHSEngine, list_engines, get_engine,
+        PDD_DEEP_AVAILABLE,
     )
     ENGINES_AVAILABLE = True
 except ImportError:
@@ -93,7 +102,27 @@ except ImportError:
     pass
 
 
-__version__ = "0.3.0"
+# ── Market Intelligence (v0.3.1) ────────────────────────────
+MARKET_AVAILABLE = False
+try:
+    from .market import scanner as market_scanner
+    from .market import report as market_report
+    MARKET_AVAILABLE = True
+except ImportError:
+    pass
+
+
+# ── Media Downloader (v0.3.1) ───────────────────────────────
+DOWNLOADER_AVAILABLE = False
+try:
+    from .downloader import image as download_image
+    from .downloader import video as download_video
+    DOWNLOADER_AVAILABLE = True
+except ImportError:
+    pass
+
+
+__version__ = "0.3.1"
 __all__ = [
     "ScrapeResult", "PageLink", "SearchResult", "MonitorResult",
     "MonitorAIResult", "CrawlResult", "ExtractResult",
@@ -122,4 +151,8 @@ __all__ = [
     "STEALTH_AVAILABLE", "CAPTCHA_AVAILABLE",
     "StealthBrowser", "apply_stealth_patches",
     "CaptchaSolver", "solve_captcha",
+    # PDD deep + Market + Downloader v0.3.1
+    "PDD_DEEP_AVAILABLE", "MARKET_AVAILABLE", "DOWNLOADER_AVAILABLE",
+    "market_scanner", "market_report",
+    "download_image", "download_video",
 ]
